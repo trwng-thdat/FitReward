@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitReward - Health-to-Earn Fintech Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- =========================================================================
+       1. AUTH / ONBOARDING VIEW (SPLIT-SCREEN)
+       Visible only when user is NOT logged in or onboarding
+       ========================================================================= -->
+  <div id="auth-app-view" class="split-layout">
+    
+    <!-- LEFT PANEL: Dynamic Forms -->
+    <div class="panel-left">
+      <div class="left-header">
+        <div class="brand" onclick="navigateTo('welcome')">
+          <div class="brand-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span class="brand-title">Fit<span class="brand-accent">Reward</span></span>
+        </div>
+      </div>
+
+      <div class="left-body">
+        <!-- WELCOME SCREEN -->
+        <div id="screen-welcome" class="auth-panel active">
+          <span class="eyebrow">Health-to-Earn Fintech</span>
+          <h1 class="main-heading">Chào mừng bạn đến với FitReward</h1>
+          <p class="sub-heading">Biến từng bước chân và thói quen rèn luyện sức khỏe mỗi ngày thành tài sản tài chính thiết thực.</p>
+
+          <div class="welcome-stats">
+            <div class="stat-pill">
+              <span class="stat-pill-num">7.000</span>
+              <span class="stat-pill-label">Bước chân / ngày</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-pill-num">FitPoints</span>
+              <span class="stat-pill-label">Tích lũy tự động</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-pill-num">Cashback</span>
+              <span class="stat-pill-label">Ví MoMo & VietQR</span>
+            </div>
+          </div>
+
+          <div class="action-stack">
+            <button class="btn btn-primary btn-lg" onclick="navigateTo('register')">
+              Tạo tài khoản mới
+            </button>
+            <button class="btn btn-outline btn-lg" onclick="navigateTo('login')">
+              Đăng nhập tài khoản
+            </button>
+          </div>
+        </div>
+
+        <!-- REGISTER SCREEN -->
+        <div id="screen-register" class="auth-panel">
+          <span class="eyebrow">Bắt đầu hành trình sức khỏe</span>
+          <h1 class="main-heading">Đăng ký FitReward</h1>
+
+          <form id="register-form" novalidate onsubmit="handleRegister(event)">
+            <div class="floating-group">
+              <div class="floating-box">
+                <label for="reg-name" class="floating-label">Họ và tên</label>
+                <input type="text" id="reg-name" class="floating-input" placeholder="Nguyễn Văn A" autocomplete="name">
+                <span class="input-suffix">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </span>
+              </div>
+              <span class="error-text" id="reg-name-error"></span>
+            </div>
+
+            <div class="floating-group">
+              <div class="floating-box">
+                <label for="reg-email" class="floating-label">E-mail</label>
+                <input type="email" id="reg-email" class="floating-input" placeholder="example@email.com" autocomplete="email">
+                <span class="input-suffix">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </span>
+              </div>
+              <span class="error-text" id="reg-email-error"></span>
+            </div>
+
+            <div class="floating-group">
+              <div class="floating-box">
+                <label for="reg-password" class="floating-label">Mật khẩu</label>
+                <input type="password" id="reg-password" class="floating-input" placeholder="••••••••" autocomplete="new-password">
+                <button type="button" class="eye-toggle-btn" tabindex="-1" onclick="togglePasswordVisibility('reg-password', this)">
+                  <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="error-text" id="reg-password-error"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg mt-2">Sign Up</button>
+          </form>
+
+          <div class="social-divider"><span>or sign up with</span></div>
+          <div class="social-row">
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập MXH sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </button>
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập Google sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+            </button>
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập Apple sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#000000"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 1.01-2.87-.96.04-2.12.65-2.79 1.44-.57.66-.99 1.73-.93 2.77 1.08.08 2.15-.57 2.71-1.34z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- LOGIN SCREEN -->
+        <div id="screen-login" class="auth-panel">
+          <span class="eyebrow">Chào mừng trở lại</span>
+          <h1 class="main-heading">Đăng nhập FitReward</h1>
+
+          <form id="login-form" novalidate onsubmit="handleLogin(event)">
+            <div class="floating-group">
+              <div class="floating-box">
+                <label for="login-email" class="floating-label">E-mail</label>
+                <input type="email" id="login-email" class="floating-input" placeholder="example@email.com" autocomplete="email">
+                <span class="input-suffix">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </span>
+              </div>
+              <span class="error-text" id="login-email-error"></span>
+            </div>
+
+            <div class="floating-group">
+              <div class="floating-box">
+                <label for="login-password" class="floating-label">Mật khẩu</label>
+                <input type="password" id="login-password" class="floating-input" placeholder="••••••••" autocomplete="current-password">
+                <button type="button" class="eye-toggle-btn" tabindex="-1" onclick="togglePasswordVisibility('login-password', this)">
+                  <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="error-text" id="login-password-error"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg mt-2">Sign In</button>
+          </form>
+
+          <div class="social-divider"><span>or sign in with</span></div>
+          <div class="social-row">
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập MXH sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </button>
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập Google sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+            </button>
+            <button type="button" class="social-btn" onclick="showToast('Đăng nhập Apple sẽ ra mắt sau', 'info')">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#000000"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 1.01-2.87-.96.04-2.12.65-2.79 1.44-.57.66-.99 1.73-.93 2.77 1.08.08 2.15-.57 2.71-1.34z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ONBOARDING: CONNECT HEALTH DATA SCREEN -->
+        <div id="screen-connect-health" class="auth-panel">
+          <span class="eyebrow">Tích hợp thiết bị</span>
+          <h1 class="main-heading">Kết nối dữ liệu sức khỏe</h1>
+          <p class="sub-heading">Chọn thiết bị hoặc ứng dụng thể chất để hệ thống tự động ghi nhận hoạt động.</p>
+
+          <div class="health-options">
+            <div class="device-item" id="device-row-apple">
+              <div class="d-icon apple-bg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 1.01-2.87-.96.04-2.12.65-2.79 1.44-.57.66-.99 1.73-.93 2.77 1.08.08 2.15-.57 2.71-1.34z"/></svg>
+              </div>
+              <div class="d-text">
+                <div class="d-title">Apple Health</div>
+                <div class="d-meta" id="status-apple">Chưa kết nối</div>
+              </div>
+              <button class="btn-d-connect" id="btn-device-apple" onclick="handleToggleDevice('apple', 'Apple Health')">Connect</button>
+            </div>
+
+            <div class="device-item" id="device-row-google">
+              <div class="d-icon google-bg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+              </div>
+              <div class="d-text">
+                <div class="d-title">Google Health Connect</div>
+                <div class="d-meta" id="status-google">Chưa kết nối</div>
+              </div>
+              <button class="btn-d-connect" id="btn-device-google" onclick="handleToggleDevice('google', 'Google Health Connect')">Connect</button>
+            </div>
+
+            <div class="device-item" id="device-row-garmin">
+              <div class="d-icon garmin-bg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"></polygon></svg>
+              </div>
+              <div class="d-text">
+                <div class="d-title">Garmin Connect</div>
+                <div class="d-meta" id="status-garmin">Chưa kết nối</div>
+              </div>
+              <button class="btn-d-connect" id="btn-device-garmin" onclick="handleToggleDevice('garmin', 'Garmin Connect')">Connect</button>
+            </div>
+
+            <div class="device-item" id="device-row-other">
+              <div class="d-icon other-bg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="3"></rect><circle cx="12" cy="14" r="4"></circle></svg>
+              </div>
+              <div class="d-text">
+                <div class="d-title">Thiết bị đeo khác</div>
+                <div class="d-meta" id="status-other">Chưa kết nối</div>
+              </div>
+              <button class="btn-d-connect" id="btn-device-other" onclick="handleToggleDevice('other', 'Thiết bị khác')">Connect</button>
+            </div>
+          </div>
+
+          <div class="privacy-note-clean">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Dữ liệu sức khỏe được mã hóa AES-256 và chỉ truy cập khi có sự đồng ý của bạn.</span>
+          </div>
+
+          <button class="btn btn-primary btn-lg mt-2" onclick="navigateTo('dashboard')">
+            Tiếp tục vào Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Left Bottom Fixed Footer -->
+      <div class="left-footer" id="left-footer-links">
+        <span id="footer-text">Have an account?</span>
+        <button type="button" class="footer-link-btn" id="footer-action-btn" onclick="toggleAuthScreen()">Sign in</button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Fluid Marble Art (Only on Landing / Auth) -->
+    <div class="panel-right">
+      <div class="marble-canvas">
+        <div class="marble-glow marble-glow-1"></div>
+        <div class="marble-glow marble-glow-2"></div>
+        <div class="marble-glow marble-glow-3"></div>
+      </div>
+
+      <div class="right-content">
+        <div class="hero-badge">FITREWARD ECOSYSTEM</div>
+        <h2 class="right-title">Mỗi bước chân bạn đi là một đồng tiết kiệm.</h2>
+        <p class="right-desc">
+          FitReward là nền tảng Fintech tiên phong tại Việt Nam chuyển hóa hoạt động thể chất hàng ngày 
+          thành giá trị tài chính thực thụ: Cashback ví điện tử, giảm phí bảo hiểm sức khỏe và phiếu mua sắm từ đối tác.
+        </p>
+
+        <div class="value-cards">
+          <div class="v-card">
+            <div class="v-icon">⚡</div>
+            <div class="v-body">
+              <h4>Health-to-Earn</h4>
+              <p>Chuyển đổi hoạt động thể chất đã được xác thực thành điểm thưởng FitPoints tự động.</p>
+            </div>
+          </div>
+          <div class="v-card">
+            <div class="v-icon">🛡️</div>
+            <div class="v-body">
+              <h4>Giảm phí bảo hiểm</h4>
+              <p>Chứng nhận sức khỏe mã hóa SHA-256 giúp bạn giảm phí bảo hiểm liên kết từ đối tác.</p>
+            </div>
+          </div>
+          <div class="v-card">
+            <div class="v-icon">💳</div>
+            <div class="v-body">
+              <h4>Thanh toán & Cashback tức thì</h4>
+              <p>Rút tiền hoàn về ví MoMo, ZaloPay hoặc tài khoản ngân hàng thông qua VietQR.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-dots">
+          <span class="dot-dash active"></span>
+          <span class="dot-dash"></span>
+          <span class="dot-dash"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       2. AUTHENTICATED FINTECH DASHBOARD APPLICATION
+       Full-width professional app shell (Visible when logged in)
+       ========================================================================= -->
+  <div id="app-dashboard-layout" class="app-shell hidden">
+    
+    <!-- 1. LEFT SIDEBAR (240px) -->
+    <aside class="app-sidebar">
+      <!-- Top Logo -->
+      <div class="sidebar-brand" onclick="switchTab('dashboard')">
+        <div class="brand-icon-box">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <span class="brand-title">Fit<span class="brand-accent">Reward</span></span>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN MENU</div>
+        <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item" id="nav-activity" onclick="switchTab('activity')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>Activity</span>
+        </button>
+
+        <button class="nav-item" id="nav-rewards" onclick="switchTab('rewards')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="7"></circle>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+          </svg>
+          <span>Rewards</span>
+          <span class="nav-badge" id="sidebar-rewards-badge">3</span>
+        </button>
+
+        <button class="nav-item" id="nav-challenges" onclick="switchTab('challenges')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Challenges</span>
+        </button>
+
+        <button class="nav-item" id="nav-family" onclick="switchTab('family')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Family</span>
+        </button>
+
+        <button class="nav-item" id="nav-history" onclick="switchTab('history')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Reward History</span>
+        </button>
+      </nav>
+
+      <!-- Bottom User / Utility Links -->
+      <div class="sidebar-bottom">
+        <button class="nav-item" id="nav-devices" onclick="switchTab('devices')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+          <span>Manage Devices</span>
+        </button>
+
+        <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Profile</span>
+        </button>
+
+        <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </button>
+
+        <button class="nav-item nav-logout" onclick="handleLogout()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 2. MAIN APPLICATION CONTENT AREA -->
+    <div class="app-main">
+      
+      <!-- TOP HEADER BAR -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <h1 class="topbar-title" id="page-title">Dashboard</h1>
+          <p class="topbar-subtitle">Track your activity and turn healthy habits into rewards.</p>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Notification Bell -->
+          <button class="topbar-icon-btn" onclick="showToast('Bạn có 1 thông báo mới: Đã hoàn thành mục tiêu 7.000 bước!', 'info')" title="Notifications">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-indicator"></span>
+          </button>
+
+          <!-- User Avatar & Identity -->
+          <div class="topbar-user" onclick="switchTab('profile')">
+            <div class="user-avatar" id="topbar-avatar">TC</div>
+            <div class="user-details">
+              <span class="user-name" id="topbar-user-name">Tim Cook</span>
+              <span class="user-tier">FitReward Plus</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SCROLLABLE DASHBOARD CONTENT BODY -->
+      <main class="dashboard-body" id="dashboard-tab-content">
+        
+        <!-- ROW 1: 4 COMPACT SUMMARY METRIC CARDS -->
+        <section class="summary-cards-grid">
+          <!-- Card 1: FitPoints -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label">FitPoints</span>
+              <span class="sc-icon blue-tint">💎</span>
+            </div>
+            <div class="sc-value text-blue" id="kpi-fitpoints">850 <span class="sc-unit">PTS</span></div>
+            <div class="sc-footer positive">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <span>+150 this week</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Today's Steps -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label">Today's Steps</span>
+              <span class="sc-icon green-tint">👣</span>
+            </div>
+            <div class="sc-value" id="kpi-steps">7,240 <span class="sc-goal">/ 7,000</span></div>
+            <div class="sc-footer goal-met">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Goal completed</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Active Minutes -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label">Active Minutes</span>
+              <span class="sc-icon amber-tint">⏱️</span>
+            </div>
+            <div class="sc-value" id="kpi-active-min">42 <span class="sc-unit">min</span></div>
+            <div class="sc-footer positive">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <span>+12% vs last week</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Current Streak -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label">Current Streak</span>
+              <span class="sc-icon red-tint">🔥</span>
+            </div>
+            <div class="sc-value" id="kpi-streak">🔥 6 <span class="sc-unit">days</span></div>
+            <div class="sc-footer streak-active">
+              <span>Keep it going!</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 2: ACTIVITY OVERVIEW & TODAY'S CHALLENGE -->
+        <section class="dashboard-grid-two-col">
+          <!-- ACTIVITY OVERVIEW (Chart Card) -->
+          <div class="card activity-chart-card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title">Activity Overview</h3>
+                <p class="card-desc">Weekly step trends & daily physical targets</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('activity')">View Activity →</button>
+            </div>
+
+            <!-- Bar Chart Visualization -->
+            <div class="chart-container">
+              <div class="chart-bars-wrap" id="chart-bars">
+                <!-- Bars with custom step tooltips on hover -->
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 65%;">
+                    <div class="bar-tooltip">6,100 bước</div>
+                  </div>
+                  <span class="bar-day">Mon</span>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 80%;">
+                    <div class="bar-tooltip">7,400 bước</div>
+                  </div>
+                  <span class="bar-day">Tue</span>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 72%;">
+                    <div class="bar-tooltip">6,800 bước</div>
+                  </div>
+                  <span class="bar-day">Wed</span>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 90%;">
+                    <div class="bar-tooltip">8,200 bước</div>
+                  </div>
+                  <span class="bar-day">Thu</span>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 75%;">
+                    <div class="bar-tooltip">7,100 bước</div>
+                  </div>
+                  <span class="bar-day">Fri</span>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height: 85%;">
+                    <div class="bar-tooltip">7,900 bước</div>
+                  </div>
+                  <span class="bar-day">Sat</span>
+                </div>
+                <div class="bar-col today">
+                  <div class="bar-fill highlight" style="height: 78%;">
+                    <div class="bar-tooltip">7,240 bước</div>
+                  </div>
+                  <span class="bar-day">Sun</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-footer-meta">
+              <div class="chart-metric-callout">
+                <strong id="chart-today-steps">7,240 steps today</strong>
+                <span id="chart-daily-goal">Goal: 7,000 steps</span>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-badge goal-line">Goal Line: 7,000</span>
+                <span class="legend-badge completed-badge">✓ Reached</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: TODAY'S CHALLENGE & QUICK ACTIONS -->
+          <div class="challenge-column">
+            <!-- TODAY'S CHALLENGE CARD -->
+            <div class="card challenge-card">
+              <div class="card-header-clean">
+                <div class="card-badge-pill green">ACTIVE TODAY</div>
+                <span class="status-badge-pill success">✓ Completed</span>
+              </div>
+
+              <h3 class="challenge-title">Walk 7,000 steps</h3>
+              <p class="challenge-subtitle">Complete your daily step milestone to earn FitPoints.</p>
+
+              <!-- Progress bar -->
+              <div class="challenge-progress-box">
+                <div class="progress-labels">
+                  <span id="today-challenge-val">7,240 / 7,000 steps</span>
+                  <span class="progress-pct" id="today-challenge-pct">100%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-bar-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="challenge-reward-row">
+                <div class="reward-tag">
+                  <span>Reward:</span>
+                  <strong class="text-blue">+100 FitPoints</strong>
+                </div>
+                <button class="btn btn-sm btn-outline-success" onclick="claimDailyReward()">Claimed</button>
+              </div>
+
+              <!-- Recommended Challenge Section -->
+              <div class="recommended-box">
+                <div class="rec-header">
+                  <span class="rec-label">Recommended Challenge</span>
+                  <span class="rec-points">+300 PTS</span>
+                </div>
+                <div class="rec-body">
+                  <strong>7-Day Walking Challenge</strong>
+                  <span class="rec-meta">5 / 7 days completed</span>
+                </div>
+                <button class="btn btn-sm btn-primary w-100 mt-2" onclick="switchTab('challenges')">
+                  Continue Challenge
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 3: FITPOINTS ACTIVITY & AVAILABLE REWARDS -->
+        <section class="dashboard-grid-two-col">
+          <!-- LEFT: FITPOINTS ACTIVITY (Recent Transactions) -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title">FitPoints Activity</h3>
+                <p class="card-desc">Recent verified healthy habit earnings</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('history')">View all →</button>
+            </div>
+
+            <div class="transactions-list" id="transactions-list-container">
+              <!-- Item 1 -->
+              <div class="tx-row">
+                <div class="tx-icon-box bg-blue">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tx-info">
+                  <div class="tx-title">Walking — 7,000 steps</div>
+                  <div class="tx-time">Today, 18:30 • Verified Sensor</div>
+                </div>
+                <div class="tx-points positive">+100</div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="tx-row">
+                <div class="tx-icon-box bg-purple">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </div>
+                <div class="tx-info">
+                  <div class="tx-title">Workout — 30 minutes</div>
+                  <div class="tx-time">Yesterday, 07:15 • Heart Rate Log</div>
+                </div>
+                <div class="tx-points positive">+50</div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="tx-row">
+                <div class="tx-icon-box bg-amber">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                </div>
+                <div class="tx-info">
+                  <div class="tx-title">Weekly Challenge</div>
+                  <div class="tx-time">3 days ago • Milestone Streak</div>
+                </div>
+                <div class="tx-points positive">+300</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: AVAILABLE REWARDS -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title">Available Rewards</h3>
+                <p class="card-desc">Redeem your points for cash & vouchers</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('rewards')">Catalog →</button>
+            </div>
+
+            <div class="reward-cards-column">
+              <!-- Reward 1: Cashback -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-green-soft">₫</div>
+                <div class="reward-meta">
+                  <div class="reward-name">₫20,000 Cashback</div>
+                  <div class="reward-cost">500 FitPoints • Ví MoMo / VietQR</div>
+                </div>
+                <button class="btn-reward-action" onclick="handleRedeemReward('cashback', 500, '₫20,000 Cashback MoMo')">Redeem</button>
+              </div>
+
+              <!-- Reward 2: Gym Voucher -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-blue-soft">🏋️</div>
+                <div class="reward-meta">
+                  <div class="reward-name">Gym Voucher 1 Ngày</div>
+                  <div class="reward-cost">300 FitPoints • California / CityGym</div>
+                </div>
+                <button class="btn-reward-action" onclick="handleRedeemReward('gym', 300, 'Gym Voucher 1 Ngày')">Redeem</button>
+              </div>
+
+              <!-- Reward 3: Insurance Benefit -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-purple-soft">🛡️</div>
+                <div class="reward-meta">
+                  <div class="reward-name">Giảm 10% Phí Bảo Hiểm</div>
+                  <div class="reward-cost">1,000 FitPoints • Bảo Việt / Prudential</div>
+                </div>
+                <button class="btn-reward-action btn-outline-action" onclick="handleRedeemReward('insurance', 1000, 'Ưu Đãi Bảo Hiểm')">View</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 4: QUICK ACTIONS & HEALTH DATA CONNECTION STATUS -->
+        <section class="dashboard-grid-two-col">
+          <!-- QUICK ACTIONS -->
+          <div class="card">
+            <div class="card-header-clean">
+              <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="quick-actions-grid">
+              <button class="qa-btn" onclick="switchTab('activity')">
+                <div class="qa-icon">📊</div>
+                <span>View Activity</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('rewards')">
+                <div class="qa-icon">🎁</div>
+                <span>Redeem Rewards</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('challenges')">
+                <div class="qa-icon">🏆</div>
+                <span>Join Challenge</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('devices')">
+                <div class="qa-icon">⌚</div>
+                <span>Connect Device</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- HEALTH DATA CONNECTION CARD -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title">Health Data</h3>
+                <p class="card-desc">Active wearable & health ecosystem sync</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('devices')">Manage Devices →</button>
+            </div>
+
+            <div class="health-sync-list">
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon apple-dot"></span>
+                  <span>Apple Health</span>
+                </div>
+                <span class="sync-badge" id="dash-device-apple">✓ Connected</span>
+              </div>
+
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon google-dot"></span>
+                  <span>Google Health Connect</span>
+                </div>
+                <span class="sync-badge" id="dash-device-google">✓ Connected</span>
+              </div>
+
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon garmin-dot"></span>
+                  <span>Garmin</span>
+                </div>
+                <span class="sync-badge" id="dash-device-garmin">✓ Connected</span>
+              </div>
+            </div>
+
+            <div class="manage-devices-row">
+              <button class="btn btn-outline btn-sm w-100" onclick="switchTab('devices')">
+                Manage Devices
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- SUB-PAGES / SCREENS (ACTIVITY, REWARDS, CHALLENGES, DEVICES, PROFILE) -->
+      <section class="subpage-view hidden" id="subpage-container">
+        <!-- Will be populated dynamically by switchTab -->
+      </section>
+
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Only visible on small screens) -->
+    <nav class="mobile-bottom-nav">
+      <button class="m-nav-item active" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="m-nav-item" onclick="switchTab('activity')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        <span>Activity</span>
+      </button>
+      <button class="m-nav-item" onclick="switchTab('rewards')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+        <span>Rewards</span>
+      </button>
+      <button class="m-nav-item" onclick="switchTab('challenges')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>Challenges</span>
+      </button>
+      <button class="m-nav-item" onclick="switchTab('profile')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
