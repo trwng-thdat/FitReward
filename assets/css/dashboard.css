@@ -775,6 +775,17 @@ body {
   margin-bottom: 16px;
 }
 
+.rw-card > .app-icon,
+.rw-card > .app-icon-pair {
+  margin-bottom: 16px;
+}
+
+.rw-card .app-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+}
+
 .rw-name {
   font-size: 16px;
   font-weight: 700;
@@ -826,8 +837,8 @@ body {
 
 .rw-selected {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
   padding: 16px;
   border-radius: 14px;
   background: var(--color-bg-page);

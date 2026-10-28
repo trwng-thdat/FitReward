@@ -15,6 +15,16 @@ const POINT_VALUE_VND = 50;
 // Active days needed per week to keep "Active member" status
 const WEEKLY_ACTIVE_TARGET = 3;
 
+// Official app icons (assets/img/apps), keyed by wallet / device id
+const APP_ICONS = {
+  momo: { src: 'momo.png', name: 'MoMo' },
+  zalopay: { src: 'zalopay.png', name: 'ZaloPay' },
+  vneid: { src: 'vneid.png', name: 'VNeID' },
+  apple: { src: 'apple-health.png', name: 'Apple Health' },
+  google: { src: 'health-connect.png', name: 'Google Health Connect' },
+  garmin: { src: 'garmin-connect.png', name: 'Garmin Connect' }
+};
+
 const DEVICE_NAMES = {
   apple: 'Apple Health',
   google: 'Google Health Connect',
@@ -22,9 +32,9 @@ const DEVICE_NAMES = {
 };
 
 const REWARDS = [
-  { id: 'cashMomo25', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.momo', value: 25000, cost: 500 },
-  { id: 'cashZalo50', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.zalopay', value: 50000, cost: 1000 },
-  { id: 'cash100', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.anyWallet', value: 100000, cost: 2000 },
+  { id: 'cashMomo25', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.momo', value: 25000, cost: 500, apps: ['momo'] },
+  { id: 'cashZalo50', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.zalopay', value: 50000, cost: 1000, apps: ['zalopay'] },
+  { id: 'cash100', category: 'cashback', nameKey: 'reward.cashback.name', subKey: 'reward.sub.anyWallet', value: 100000, cost: 2000, apps: ['momo', 'zalopay'] },
   { id: 'coffee25', category: 'voucher', nameKey: 'reward.coffee.name', subKey: 'reward.sub.coffee', value: 25000, cost: 500 },
   { id: 'fnb50', category: 'voucher', nameKey: 'reward.fnb.name', subKey: 'reward.sub.fnb', value: 50000, cost: 1000 },
   { id: 'sport15', category: 'voucher', nameKey: 'reward.sport.name', subKey: 'reward.sub.sport', percent: 15, cost: 800 },
@@ -60,10 +70,10 @@ const ICON_PATHS = {
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>',
-  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>',
   flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>',
   bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>',
   check: '<polyline points="20 6 9 17 4 12"></polyline>',
+  watch: '<circle cx="12" cy="12" r="6"></circle><polyline points="12 10 12 12 13 13"></polyline><path d="m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"></path><path d="m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"></path>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>'
 };
 
@@ -78,6 +88,26 @@ let showAllActivity = false;
 
 function icon(name, size = 18, strokeWidth = 2) {
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
+}
+
+/**
+ * Official app icon; decorative (empty alt) because the app name is always shown next to it.
+ * size: '' (40px), 'sm' (28px) or 'xs' (20px).
+ */
+function appIcon(appId, size = '') {
+  const app = APP_ICONS[appId];
+  const px = { '': 40, sm: 28, xs: 20 }[size];
+  return `<img class="app-icon ${size ? `app-icon-${size}` : ''}" src="assets/img/apps/${app.src}" alt="" title="${app.name}" width="${px}" height="${px}">`;
+}
+
+// Reward visual: wallet app icon(s) for cashback, otherwise a line icon in a tinted box
+function rewardVisual(reward) {
+  if (reward.apps) {
+    const icons = reward.apps.map(appId => appIcon(appId)).join('');
+    return reward.apps.length > 1 ? `<span class="app-icon-pair">${icons}</span>` : icons;
+  }
+  const rIcon = rewardIcon(reward);
+  return `<span class="icon-box icon-box-${rIcon.tone}">${icon(rIcon.name)}</span>`;
 }
 
 // User-provided text (names, emails) is escaped before it goes into templates
@@ -217,7 +247,7 @@ function renderOverview() {
     </div>
     <div class="page-head-actions">
       <button type="button" class="health-pill" onclick="switchTab('profile')">
-        <span class="status-dot ${connectedDevice ? 'is-on' : ''}"></span>
+        ${connectedDevice && APP_ICONS[connectedDevice] ? appIcon(connectedDevice, 'xs') : `<span class="status-dot ${connectedDevice ? 'is-on' : ''}"></span>`}
         ${connectedDevice ? t('dash.deviceConnected', { device: deviceName(connectedDevice) }) : t('dash.noDevice')}
       </button>
       <button type="button" class="icon-btn" data-soon="toast.notification" title="${t('dash.notifications')}" aria-label="${t('dash.notifications')}">${icon('bell', 20)}</button>
@@ -227,9 +257,14 @@ function renderOverview() {
 
   const txList = getTransactions();
   const visibleTx = showAllActivity ? txList : txList.slice(0, 4);
+  const txVisual = (tx) => {
+    const reward = tx.rewardId && findReward(tx.rewardId);
+    if (reward && reward.apps) return appIcon(reward.apps[0]);
+    return `<span class="icon-box icon-box-mint">${icon(tx.category === 'redeem' ? 'gift' : 'pulse')}</span>`;
+  };
   const txRows = visibleTx.map(tx => `
     <li class="list-row">
-      <span class="icon-box icon-box-mint">${icon(tx.category === 'redeem' ? 'gift' : 'pulse')}</span>
+      ${txVisual(tx)}
       <div class="list-main">
         <strong>${getTxTitle(tx)}</strong>
         <span>${getTxTime(tx)}</span>
@@ -242,7 +277,7 @@ function renderOverview() {
   `).join('');
 
   const suggestions = [
-    { iconName: 'wallet', title: t('ov.suggest.cash', { value: formatCurrency(25000) }), sub: pointsLabel(500), action: "openReward('cashMomo25')" },
+    { appId: 'momo', title: t('ov.suggest.cash', { value: formatCurrency(25000) }), sub: pointsLabel(500), action: "openReward('cashMomo25')" },
     { iconName: 'ticket', title: t('ov.suggest.coffee'), sub: pointsLabel(500), action: "openReward('coffee25')" },
     { iconName: 'trophy', title: t('ov.suggest.streak'), sub: t('ov.suggest.streakDesc'), action: "switchTab('challenges')" }
   ];
@@ -337,7 +372,7 @@ function renderOverview() {
         <div class="suggest-list">
           ${suggestions.map(item => `
             <button type="button" class="suggest-item" onclick="${item.action}">
-              <span class="icon-box icon-box-navy">${icon(item.iconName)}</span>
+              ${item.appId ? appIcon(item.appId) : `<span class="icon-box icon-box-navy">${icon(item.iconName)}</span>`}
               <span class="list-main">
                 <strong>${item.title}</strong>
                 <span>${item.sub}</span>
@@ -381,7 +416,6 @@ function renderRewards() {
   `;
 
   const cards = visibleRewards.map(reward => {
-    const rIcon = rewardIcon(reward);
     const missing = reward.cost - balance;
     const footer = reward.locked
       ? `<strong class="rw-cost is-muted">${t('rw.needSbt')}</strong><span>${t('rw.daysLeft', { n: activity.streakTarget - activity.streak })}</span>`
@@ -390,7 +424,7 @@ function renderRewards() {
     return `
       <button type="button" class="rw-card ${reward.id === selectedRewardId ? 'is-selected' : ''} ${reward.locked ? 'is-locked' : ''}"
               onclick="selectReward('${reward.id}')" aria-pressed="${reward.id === selectedRewardId}">
-        <span class="icon-box icon-box-${rIcon.tone}">${icon(rIcon.name)}</span>
+        ${rewardVisual(reward)}
         <strong class="rw-name">${rewardName(reward)}</strong>
         <span class="rw-sub">${t(reward.subKey)}</span>
         <span class="rw-footer">${footer}</span>
@@ -405,8 +439,11 @@ function renderRewards() {
     confirm = `
       <h2 class="card-title">${t('rw.confirm.title')}</h2>
       <div class="rw-selected">
-        <strong>${rewardName(selected)}</strong>
-        <span>${t(selected.subKey)}</span>
+        ${rewardVisual(selected)}
+        <div class="list-main">
+          <strong>${rewardName(selected)}</strong>
+          <span>${t(selected.subKey)}</span>
+        </div>
       </div>
       <dl class="rw-rows">
         <div><dt>${t('rw.confirm.value')}</dt><dd>${rewardValueLabel(selected)}</dd></div>
@@ -650,7 +687,7 @@ function renderProfile() {
     const linked = wallets[walletId];
     return `
       <li class="list-row">
-        <span class="icon-box icon-box-mint">${icon('wallet')}</span>
+        ${appIcon(walletId)}
         <div class="list-main">
           <strong>${t(`pf.wallet.${walletId}`)}</strong>
           <span>${linked ? t('pf.wallet.linked', { phone: escapeHtml(maskPhone(user.phone)) }) : t('pf.wallet.unlinked')}</span>
@@ -666,7 +703,7 @@ function renderProfile() {
     const connected = isDeviceConnected(user, deviceId);
     return `
       <li class="list-row">
-        <span class="icon-box icon-box-mint">${icon('heart')}</span>
+        ${APP_ICONS[deviceId] ? appIcon(deviceId) : `<span class="icon-box icon-box-mint">${icon('watch')}</span>`}
         <div class="list-main">
           <strong>${deviceName(deviceId)}</strong>
           <span>${connected ? t('pf.health.synced', { time }) : t('device.status.notConnected')}</span>
@@ -713,7 +750,7 @@ function renderProfile() {
             <span class="chip ${user.ekycVerified ? 'chip-mint' : 'chip-amber'}">${t(user.ekycVerified ? 'pf.ekyc.done' : 'pf.ekyc.pending')}</span>
           </div>
           <p class="card-text">${t(user.ekycVerified ? 'pf.ekyc.doneDesc' : 'pf.ekyc.desc')}</p>
-          ${user.ekycVerified ? '' : `<button type="button" class="pill-btn pill-btn-navy" onclick="verifyEkyc()">${t('pf.ekyc.cta')}</button>`}
+          ${user.ekycVerified ? '' : `<button type="button" class="pill-btn pill-btn-navy" onclick="verifyEkyc()">${appIcon('vneid', 'xs')} ${t('pf.ekyc.cta')}</button>`}
         </article>
 
         <article class="card">

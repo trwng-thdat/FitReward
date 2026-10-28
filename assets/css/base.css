@@ -185,7 +185,49 @@ html {
   color: #ffffff;
 }
 
-/* Health device rows (register step 2 + dashboard "Manage Devices") */
+/* Real app icons (assets/img/apps): MoMo, ZaloPay, VNeID, Apple Health, Health Connect, Garmin Connect */
+.app-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 31, 61, 0.08);
+}
+
+.app-icon-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+.app-icon-xs {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+
+/* Two overlapping app icons, e.g. "MoMo or ZaloPay" */
+.app-icon-pair {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.app-icon-pair .app-icon + .app-icon {
+  margin-left: -14px;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+/* Row of small app icons under a landing card */
+.app-icon-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Health device rows (register step 2 + dashboard profile) */
 .health-options {
   display: flex;
   flex-direction: column;
