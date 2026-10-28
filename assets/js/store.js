@@ -12,6 +12,10 @@ const PAGES = {
 
 const ONBOARDING_STEP_KEY = 'fitRewardOnboardingStep';
 
+// Bump when the shape of the mock data changes; older data is reseeded once
+const DATA_VERSION = 2;
+const DATA_VERSION_KEY = 'fitRewardDataVersion';
+
 // Map deviceId to schema property name
 const DEVICE_KEY_MAP = {
   apple: 'appleHealth',
@@ -20,12 +24,8 @@ const DEVICE_KEY_MAP = {
   other: 'otherWearables'
 };
 
-// Translation keys for the seeded transactions (ids 1-3), used to migrate older untranslated data
-const SEED_TX_KEYS = {
-  1: { titleKey: 'tx.walk', timeKey: 'tx.walk.time' },
-  2: { titleKey: 'tx.workout', timeKey: 'tx.workout.time' },
-  3: { titleKey: 'tx.weekly', timeKey: 'tx.weekly.time' }
-};
+// Shown when no account name is available (the site owner)
+const DEFAULT_USERNAME = 'Nguyễn Ngọc Phương Anh';
 
 // =========================================================================
 // 1. SESSION (remembered logins in localStorage, one-off logins in sessionStorage)
@@ -84,7 +84,23 @@ function saveUser(email, user) {
 
 function getCurrentUser() {
   const email = getCurrentEmail();
-  return (email && getUser(email)) || { username: 'Tim Cook' };
+  return (email && getUser(email)) || { username: DEFAULT_USERNAME };
+}
+
+/**
+ * Merges changes into the logged-in user and returns the updated user.
+ */
+function updateCurrentUser(changes) {
+  const email = getCurrentEmail();
+  const user = { ...getCurrentUser(), ...changes };
+  if (email) saveUser(email, user);
+  return user;
+}
+
+function deleteCurrentUser() {
+  const email = getCurrentEmail();
+  if (email) localStorage.removeItem(email);
+  clearCurrentEmail();
 }
 
 // Older accounts have no device flags at all; those count as connected
@@ -96,11 +112,9 @@ function isDeviceConnected(user, deviceId) {
  * Flips a device connection for the logged-in user and returns the new state.
  */
 function toggleUserDevice(deviceId) {
-  const email = getCurrentEmail() || 'demo@fitreward.vn';
-  const user = getUser(email) || {};
+  const user = getCurrentUser();
   const connected = !isDeviceConnected(user, deviceId);
-  user[DEVICE_KEY_MAP[deviceId]] = connected;
-  saveUser(email, user);
+  updateCurrentUser({ [DEVICE_KEY_MAP[deviceId]]: connected });
   return connected;
 }
 
@@ -121,56 +135,53 @@ function findEmailByPhone(phone) {
 // 3. FITREWARD MOCK DATA
 // =========================================================================
 
+function defaultActivity() {
+  return {
+    todaySteps: 8420,
+    calories: 412,
+    activeMinutes: 45,
+    dailyGoal: 10000,
+    activeDayThreshold: 7000,
+    streak: 5,
+    streakTarget: 30,
+    todayPoints: 60,
+    dailyPointCap: 100,
+    // Steps for the earlier days of this week, Monday first
+    weekSteps: [7150, 9200, 8800, 7600, 6200, 10400]
+  };
+}
+
+// Transactions store translation keys + raw params so they follow the active language
+function defaultTransactions() {
+  return [
+    { id: 1, titleKey: 'tx.walk', params: { steps: 8420 }, timeKey: 'tx.time.today', timeParams: { min: 45 }, points: 50, statusKey: 'tx.status.onchain', category: 'walk' },
+    { id: 2, titleKey: 'tx.run', params: { km: 5.2 }, timeKey: 'tx.time.todayAt', timeParams: { time: '06:10', min: 32 }, points: 10, statusKey: 'tx.status.onchain', category: 'run' },
+    { id: 3, titleKey: 'tx.redeem', rewardId: 'cashMomo25', timeKey: 'tx.time.yesterdayAt', timeParams: { time: '20:15' }, points: -500, statusKey: 'tx.status.wallet', category: 'redeem' },
+    { id: 4, titleKey: 'tx.walk', params: { steps: 7150 }, timeKey: 'tx.time.monday', timeParams: { min: 38 }, points: 50, statusKey: 'tx.status.onchain', category: 'walk' }
+  ];
+}
+
 /**
  * Initializes standard FitReward mock data in localStorage if not already present.
  */
 function initFitRewardStorage() {
-  if (!localStorage.getItem('fitRewardActivity')) {
-    const defaultActivity = {
-      todaySteps: 7240,
-      dailyGoal: 7000,
-      activeMinutes: 42,
-      currentStreak: 6,
-      weeklyChart: [
-        { day: 'Mon', steps: 6100, height: 65 },
-        { day: 'Tue', steps: 7400, height: 80 },
-        { day: 'Wed', steps: 6800, height: 72 },
-        { day: 'Thu', steps: 8200, height: 90 },
-        { day: 'Fri', steps: 7100, height: 75 },
-        { day: 'Sat', steps: 7900, height: 85 },
-        { day: 'Sun', steps: 7240, height: 78, isToday: true }
-      ]
-    };
-    localStorage.setItem('fitRewardActivity', JSON.stringify(defaultActivity));
-  }
+  const outdated = Number(localStorage.getItem(DATA_VERSION_KEY)) !== DATA_VERSION;
 
-  if (!localStorage.getItem('fitRewardPoints')) {
-    localStorage.setItem('fitRewardPoints', JSON.stringify({ balance: 850 }));
+  if (outdated || !localStorage.getItem('fitRewardActivity')) {
+    localStorage.setItem('fitRewardActivity', JSON.stringify(defaultActivity()));
   }
-
-  // Transactions store translation keys instead of display text so they follow the active language
-  const txList = readJSON('fitRewardTransactions', null);
-  if (!txList) {
-    const defaultTransactions = [
-      { id: 1, titleKey: 'tx.walk', timeKey: 'tx.walk.time', points: 100, type: 'earn', category: 'walk' },
-      { id: 2, titleKey: 'tx.workout', timeKey: 'tx.workout.time', points: 50, type: 'earn', category: 'workout' },
-      { id: 3, titleKey: 'tx.weekly', timeKey: 'tx.weekly.time', points: 300, type: 'earn', category: 'challenge' }
-    ];
-    localStorage.setItem('fitRewardTransactions', JSON.stringify(defaultTransactions));
-  } else {
-    let migrated = false;
-    txList.forEach(tx => {
-      if (!tx.titleKey && SEED_TX_KEYS[tx.id]) {
-        Object.assign(tx, SEED_TX_KEYS[tx.id]);
-        migrated = true;
-      }
-    });
-    if (migrated) localStorage.setItem('fitRewardTransactions', JSON.stringify(txList));
+  if (outdated || !localStorage.getItem('fitRewardPoints')) {
+    localStorage.setItem('fitRewardPoints', JSON.stringify({ balance: 2450 }));
   }
+  if (outdated || !localStorage.getItem('fitRewardTransactions')) {
+    localStorage.setItem('fitRewardTransactions', JSON.stringify(defaultTransactions()));
+  }
+  localStorage.removeItem('fitRewardChallenges');
+  localStorage.setItem(DATA_VERSION_KEY, String(DATA_VERSION));
 }
 
 function getActivity() {
-  return readJSON('fitRewardActivity', { todaySteps: 7240, dailyGoal: 7000, activeMinutes: 42, currentStreak: 6, weeklyChart: [] });
+  return { ...defaultActivity(), ...readJSON('fitRewardActivity', {}) };
 }
 
 function saveActivity(activity) {
@@ -178,7 +189,7 @@ function saveActivity(activity) {
 }
 
 function getPoints() {
-  return readJSON('fitRewardPoints', { balance: 850 });
+  return readJSON('fitRewardPoints', { balance: 2450 });
 }
 
 function savePoints(points) {

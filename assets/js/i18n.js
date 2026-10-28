@@ -33,6 +33,24 @@ function formatNumber(value) {
   return Number(value).toLocaleString(currentLang === 'vi' ? 'vi-VN' : 'en-US');
 }
 
+/**
+ * Formats a VND amount: 25.000đ (vi) / 25,000₫ (en).
+ */
+function formatCurrency(value) {
+  return currentLang === 'vi' ? `${formatNumber(value)}đ` : `${formatNumber(value)}₫`;
+}
+
+/**
+ * Highlights the active language in every VI | EN switcher (also ones rendered later).
+ */
+function syncLanguageButtons() {
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const isActive = btn.dataset.lang === currentLang;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
 function readParams(el) {
   if (!el.dataset.i18nParams) return {};
   try {
@@ -64,12 +82,7 @@ function applyTranslations(root = document) {
 
   document.documentElement.lang = currentLang;
   document.title = t(document.body.dataset.titleKey || 'meta.title');
-
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    const isActive = btn.dataset.lang === currentLang;
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-pressed', String(isActive));
-  });
+  syncLanguageButtons();
 }
 
 function onLanguageChange(handler) {

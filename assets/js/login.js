@@ -41,13 +41,13 @@ function handleLogin(event) {
   }
 
   let storedPassword = '';
-  let storedUsername = 'Tim Cook';
+  let storedUsername = DEFAULT_USERNAME;
 
   try {
     const parsedData = JSON.parse(rawData);
     if (parsedData && typeof parsedData === 'object') {
       storedPassword = parsedData.password;
-      storedUsername = parsedData.username || 'Tim Cook';
+      storedUsername = parsedData.username || DEFAULT_USERNAME;
     }
   } catch (e) {
     const match = rawData.match(/^\[(.*)\]-\[(.*)\]$/);
