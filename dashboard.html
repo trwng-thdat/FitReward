@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · FitReward</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <script src="assets/js/store.js"></script>
+  <script>requireSession();</script>
+</head>
+<body data-title-key="meta.title.dashboard">
+  <div id="toast" class="toast is-hidden" role="status" aria-live="polite"></div>
+
+  <div id="app-dashboard-layout" class="app-shell">
+
+    <!-- 1. LEFT SIDEBAR (240px) -->
+    <aside class="app-sidebar">
+      <!-- Top Logo -->
+      <a href="index.html" class="sidebar-brand logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></span>
+        <span>Fit<span class="logo-accent">Reward</span></span>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title" data-i18n="nav.mainMenu">MENU CHÍNH</div>
+        <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span data-i18n="nav.dashboard">Tổng quan</span>
+        </button>
+
+        <button class="nav-item" id="nav-activity" onclick="switchTab('activity')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span data-i18n="nav.activity">Hoạt động</span>
+        </button>
+
+        <button class="nav-item" id="nav-rewards" onclick="switchTab('rewards')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="7"></circle>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+          </svg>
+          <span data-i18n="nav.rewards">Phần thưởng</span>
+          <span class="nav-badge" id="sidebar-rewards-badge">3</span>
+        </button>
+
+        <button class="nav-item" id="nav-challenges" onclick="switchTab('challenges')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span data-i18n="nav.challenges">Thử thách</span>
+        </button>
+
+        <button class="nav-item" id="nav-family" onclick="switchTab('family')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span data-i18n="nav.family">Gia đình</span>
+        </button>
+
+        <button class="nav-item" id="nav-history" onclick="switchTab('history')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span data-i18n="nav.history">Lịch sử thưởng</span>
+        </button>
+      </nav>
+
+      <!-- Bottom User / Utility Links -->
+      <div class="sidebar-bottom">
+        <button class="nav-item" id="nav-devices" onclick="switchTab('devices')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+          <span data-i18n="nav.devices">Quản lý thiết bị</span>
+        </button>
+
+        <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span data-i18n="nav.profile">Hồ sơ</span>
+        </button>
+
+        <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span data-i18n="nav.settings">Cài đặt</span>
+        </button>
+
+        <button class="nav-item nav-logout" onclick="handleLogout()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span data-i18n="nav.logout">Đăng xuất</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 2. MAIN APPLICATION CONTENT AREA -->
+    <div class="app-main">
+
+      <!-- TOP HEADER BAR -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <h1 class="topbar-title" id="page-title">Tổng quan</h1>
+          <p class="topbar-subtitle" data-i18n="topbar.subtitle">Theo dõi hoạt động và biến thói quen lành mạnh thành phần thưởng.</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Ngôn ngữ">
+            <button type="button" class="lang-btn" data-lang="vi" onclick="setLanguage('vi')">VI</button>
+            <button type="button" class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+          </div>
+
+          <!-- Notification Bell -->
+          <button class="topbar-icon-btn" data-soon="toast.notification" title="Thông báo" data-i18n-title="topbar.notifications">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-indicator"></span>
+          </button>
+
+          <!-- User Avatar & Identity -->
+          <div class="topbar-user" onclick="switchTab('profile')">
+            <div class="user-avatar" id="topbar-avatar">TC</div>
+            <div class="user-details">
+              <span class="user-name" id="topbar-user-name">Tim Cook</span>
+              <span class="user-tier" data-i18n="user.tier">FitReward Plus</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SCROLLABLE DASHBOARD CONTENT BODY -->
+      <main class="dashboard-body" id="dashboard-tab-content">
+
+        <!-- ROW 1: 4 COMPACT SUMMARY METRIC CARDS -->
+        <section class="summary-cards-grid">
+          <!-- Card 1: FitPoints -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label" data-i18n="kpi.fitpoints">FitPoints</span>
+              <span class="sc-icon mint-tint">💎</span>
+            </div>
+            <div class="sc-value text-accent" id="kpi-fitpoints"></div>
+            <div class="sc-footer positive">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <span data-i18n="kpi.weekly">+150 tuần này</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Today's Steps -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label" data-i18n="kpi.steps">Bước chân hôm nay</span>
+              <span class="sc-icon green-tint">👣</span>
+            </div>
+            <div class="sc-value" id="kpi-steps"></div>
+            <div class="sc-footer goal-met" id="kpi-steps-footer">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span></span>
+            </div>
+          </div>
+
+          <!-- Card 3: Active Minutes -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label" data-i18n="kpi.activeMin">Phút vận động</span>
+              <span class="sc-icon amber-tint">⏱️</span>
+            </div>
+            <div class="sc-value" id="kpi-active-min"></div>
+            <div class="sc-footer positive">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <span data-i18n="kpi.activeChange">+12% so với tuần trước</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Current Streak -->
+          <div class="summary-card">
+            <div class="sc-header">
+              <span class="sc-label" data-i18n="kpi.streak">Chuỗi hiện tại</span>
+              <span class="sc-icon red-tint">🔥</span>
+            </div>
+            <div class="sc-value" id="kpi-streak"></div>
+            <div class="sc-footer streak-active">
+              <span data-i18n="kpi.keepGoing">Tiếp tục phát huy!</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 2: ACTIVITY OVERVIEW & TODAY'S CHALLENGE -->
+        <section class="dashboard-grid-two-col">
+          <!-- ACTIVITY OVERVIEW (Chart Card) -->
+          <div class="card activity-chart-card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title" data-i18n="chart.title">Tổng quan hoạt động</h3>
+                <p class="card-desc" data-i18n="chart.desc">Xu hướng bước chân theo tuần & mục tiêu hằng ngày</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('activity')" data-i18n="chart.viewActivity">Xem hoạt động →</button>
+            </div>
+
+            <!-- Bar Chart Visualization (rendered from fitRewardActivity.weeklyChart) -->
+            <div class="chart-container">
+              <div class="chart-bars-wrap" id="chart-bars"></div>
+            </div>
+
+            <div class="chart-footer-meta">
+              <div class="chart-metric-callout">
+                <strong id="chart-today-steps"></strong>
+                <span id="chart-daily-goal"></span>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-badge goal-line" id="chart-goal-line"></span>
+                <span class="legend-badge completed-badge" id="chart-reached" data-i18n="chart.reached">✓ Đã đạt</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: TODAY'S CHALLENGE & QUICK ACTIONS -->
+          <div class="challenge-column">
+            <!-- TODAY'S CHALLENGE CARD -->
+            <div class="card challenge-card">
+              <div class="card-header-clean">
+                <div class="card-badge-pill green" data-i18n="challenge.activeToday">HÔM NAY</div>
+                <span class="status-badge-pill success" id="challenge-status"></span>
+              </div>
+
+              <h3 class="challenge-title" id="challenge-title"></h3>
+              <p class="challenge-subtitle" data-i18n="challenge.daily.subtitle">Hoàn thành cột mốc bước chân hằng ngày để nhận FitPoints.</p>
+
+              <!-- Progress bar -->
+              <div class="challenge-progress-box">
+                <div class="progress-labels">
+                  <span id="today-challenge-val"></span>
+                  <span class="progress-pct" id="today-challenge-pct"></span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-bar-fill" id="today-challenge-bar"></div>
+                </div>
+              </div>
+
+              <div class="challenge-reward-row">
+                <div class="reward-tag">
+                  <span data-i18n="challenge.reward">Phần thưởng:</span>
+                  <strong class="text-accent">+100 FitPoints</strong>
+                </div>
+                <button class="btn btn-sm btn-outline-success" onclick="claimDailyReward()" data-i18n="challenge.claimed">Đã nhận</button>
+              </div>
+
+              <!-- Recommended Challenge Section -->
+              <div class="recommended-box">
+                <div class="rec-header">
+                  <span class="rec-label" data-i18n="challenge.recommended">Thử thách đề xuất</span>
+                  <span class="rec-points">+300 PTS</span>
+                </div>
+                <div class="rec-body">
+                  <strong data-i18n="challenge.weekly.title">Thử thách đi bộ 7 ngày</strong>
+                  <span class="rec-meta" data-i18n="challenge.weekly.meta">Đã hoàn thành 5 / 7 ngày</span>
+                </div>
+                <button class="btn btn-sm btn-primary w-100 mt-2" onclick="switchTab('challenges')" data-i18n="challenge.continue">
+                  Tiếp tục thử thách
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 3: FITPOINTS ACTIVITY & AVAILABLE REWARDS -->
+        <section class="dashboard-grid-two-col">
+          <!-- LEFT: FITPOINTS ACTIVITY (Recent Transactions) -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title" data-i18n="feed.title">Hoạt động FitPoints</h3>
+                <p class="card-desc" data-i18n="feed.desc">Điểm thưởng gần đây từ thói quen lành mạnh đã xác thực</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('history')" data-i18n="feed.viewAll">Xem tất cả →</button>
+            </div>
+
+            <!-- Rendered from fitRewardTransactions (latest 3) -->
+            <div class="transactions-list" id="transactions-list-container"></div>
+          </div>
+
+          <!-- RIGHT: AVAILABLE REWARDS -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title" data-i18n="rewardsCard.title">Phần thưởng khả dụng</h3>
+                <p class="card-desc" data-i18n="rewardsCard.desc">Đổi điểm lấy tiền mặt & voucher</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('rewards')" data-i18n="rewardsCard.catalog">Danh mục →</button>
+            </div>
+
+            <div class="reward-cards-column">
+              <!-- Reward 1: Cashback -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-green-soft">₫</div>
+                <div class="reward-meta">
+                  <div class="reward-name" data-i18n="reward.cashback.name">Hoàn tiền 20.000₫</div>
+                  <div class="reward-cost" data-i18n="reward.cashback.cost">500 FitPoints • Ví MoMo / VietQR</div>
+                </div>
+                <button class="btn-reward-action" onclick="handleRedeemReward('cashback', 500)" data-i18n="btn.redeem">Đổi</button>
+              </div>
+
+              <!-- Reward 2: Gym Voucher -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-navy-soft">🏋️</div>
+                <div class="reward-meta">
+                  <div class="reward-name" data-i18n="reward.gym.name">Voucher Gym 1 ngày</div>
+                  <div class="reward-cost" data-i18n="reward.gym.cost">300 FitPoints • California / CityGym</div>
+                </div>
+                <button class="btn-reward-action" onclick="handleRedeemReward('gym', 300)" data-i18n="btn.redeem">Đổi</button>
+              </div>
+
+              <!-- Reward 3: Insurance Benefit -->
+              <div class="reward-item-row">
+                <div class="reward-icon-box bg-amber-soft">🛡️</div>
+                <div class="reward-meta">
+                  <div class="reward-name" data-i18n="reward.insurance.name">Giảm 10% phí bảo hiểm</div>
+                  <div class="reward-cost" data-i18n="reward.insurance.cost">1.000 FitPoints • Bảo Việt / Prudential</div>
+                </div>
+                <button class="btn-reward-action btn-outline-action" onclick="handleRedeemReward('insurance', 1000)" data-i18n="btn.view">Xem</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROW 4: QUICK ACTIONS & HEALTH DATA CONNECTION STATUS -->
+        <section class="dashboard-grid-two-col">
+          <!-- QUICK ACTIONS -->
+          <div class="card">
+            <div class="card-header-clean">
+              <h3 class="card-title" data-i18n="quick.title">Thao tác nhanh</h3>
+            </div>
+            <div class="quick-actions-grid">
+              <button class="qa-btn" onclick="switchTab('activity')">
+                <div class="qa-icon">📊</div>
+                <span data-i18n="quick.activity">Xem hoạt động</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('rewards')">
+                <div class="qa-icon">🎁</div>
+                <span data-i18n="quick.redeem">Đổi phần thưởng</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('challenges')">
+                <div class="qa-icon">🏆</div>
+                <span data-i18n="quick.challenge">Tham gia thử thách</span>
+              </button>
+              <button class="qa-btn" onclick="switchTab('devices')">
+                <div class="qa-icon">⌚</div>
+                <span data-i18n="quick.device">Kết nối thiết bị</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- HEALTH DATA CONNECTION CARD -->
+          <div class="card">
+            <div class="card-header-clean">
+              <div>
+                <h3 class="card-title" data-i18n="health.title">Dữ liệu sức khỏe</h3>
+                <p class="card-desc" data-i18n="health.desc">Đồng bộ thiết bị đeo & hệ sinh thái sức khỏe</p>
+              </div>
+              <button class="btn-subtle" onclick="switchTab('devices')" data-i18n="health.manage">Quản lý thiết bị →</button>
+            </div>
+
+            <div class="health-sync-list">
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon apple-dot"></span>
+                  <span>Apple Health</span>
+                </div>
+                <span class="sync-badge" id="dash-device-apple"></span>
+              </div>
+
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon google-dot"></span>
+                  <span>Google Health Connect</span>
+                </div>
+                <span class="sync-badge" id="dash-device-google"></span>
+              </div>
+
+              <div class="sync-status-item">
+                <div class="sync-name">
+                  <span class="device-dot-icon garmin-dot"></span>
+                  <span>Garmin</span>
+                </div>
+                <span class="sync-badge" id="dash-device-garmin"></span>
+              </div>
+            </div>
+
+            <div class="manage-devices-row">
+              <button class="btn btn-outline btn-sm w-100" onclick="switchTab('devices')" data-i18n="health.manageBtn">
+                Quản lý thiết bị
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- SUB-PAGES / SCREENS (ACTIVITY, REWARDS, CHALLENGES, DEVICES, PROFILE) -->
+      <section class="subpage-view hidden" id="subpage-container">
+        <!-- Will be populated dynamically by switchTab -->
+      </section>
+
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Only visible on small screens) -->
+    <nav class="mobile-bottom-nav">
+      <button class="m-nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span data-i18n="nav.dashboard">Tổng quan</span>
+      </button>
+      <button class="m-nav-item" data-tab="activity" onclick="switchTab('activity')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        <span data-i18n="nav.activity">Hoạt động</span>
+      </button>
+      <button class="m-nav-item" data-tab="rewards" onclick="switchTab('rewards')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+        <span data-i18n="nav.rewards">Phần thưởng</span>
+      </button>
+      <button class="m-nav-item" data-tab="challenges" onclick="switchTab('challenges')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span data-i18n="nav.challenges">Thử thách</span>
+      </button>
+      <button class="m-nav-item" data-tab="profile" onclick="switchTab('profile')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span data-i18n="nav.profile">Hồ sơ</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="assets/js/locales/vi.js"></script>
+  <script src="assets/js/locales/en.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

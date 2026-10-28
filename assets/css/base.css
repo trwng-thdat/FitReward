@@ -1,0 +1,333 @@
+/* ==========================================================================
+   FITREWARD - BASE: design tokens, reset and shared components
+   Palette: navy + green (see landing / auth designs)
+   ========================================================================== */
+
+:root {
+  /* Brand palette */
+  --color-navy: #0f1f3d;
+  --color-navy-hover: #1b2f57;
+  --color-navy-deep: #0b1f45;        /* auth side panel */
+  --color-navy-raised: #15295a;      /* cards on navy */
+  --color-navy-soft: #eef2f8;
+  --color-green: #10b981;            /* bright accent: badges, icons on navy */
+  --color-green-hover: #34d399;
+  --color-green-strong: #15803d;     /* accessible green for text & links on white */
+  --color-mint: #eaf6ef;
+  --color-mint-strong: #d6efe0;
+  --color-mint-border: #bfe6cf;
+
+  /* Semantic aliases */
+  --color-primary: var(--color-navy);
+  --color-primary-hover: var(--color-navy-hover);
+  --color-primary-light: var(--color-navy-soft);
+  --color-accent: var(--color-green-strong);
+  --color-accent-light: var(--color-mint);
+  --color-accent-border: var(--color-mint-border);
+
+  --color-success: #10b981;
+  --color-success-light: #ecfdf5;
+  --color-success-border: #a7f3d0;
+
+  --color-amber: #f59e0b;
+  --color-amber-light: #fffbeb;
+
+  --color-danger: #ef4444;
+  --color-danger-light: #fef2f2;
+
+  --color-bg-page: #f4f7fa;
+  --color-bg-card: #ffffff;
+  --color-sidebar: #ffffff;
+
+  --color-text-main: #0f1f3d;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-dim: #94a3b8;
+
+  --color-border: #e3e8ee;
+  --color-border-card: #e5e9ef;
+  --color-border-input: #cfd8e3;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+
+  --shadow-sm: 0 1px 2px 0 rgba(15, 31, 61, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(15, 31, 61, 0.05), 0 1px 2px -1px rgba(15, 31, 61, 0.05);
+  --shadow-hover: 0 8px 20px -8px rgba(15, 31, 61, 0.18), 0 2px 4px -2px rgba(15, 31, 61, 0.05);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   SHARED COMPONENTS
+   ========================================================================== */
+
+/* Logo: navy mark on light backgrounds, .logo--light on navy */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--color-navy);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-navy);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-mark::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-green);
+  border: 2px solid var(--logo-ring, #ffffff);
+}
+
+.logo-accent {
+  color: var(--color-green-strong);
+}
+
+.logo--light {
+  --logo-ring: var(--color-navy-deep);
+  color: #ffffff;
+}
+
+.logo--light .logo-mark {
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  color: var(--color-navy);
+}
+
+.logo--light .logo-accent {
+  color: var(--color-green);
+}
+
+/* Language switcher */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  min-width: 34px;
+  padding: 4px 9px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.lang-btn:hover {
+  color: var(--color-text-main);
+}
+
+.lang-btn.active {
+  background: var(--color-navy);
+  color: #ffffff;
+}
+
+/* Health device rows (register step 2 + dashboard "Manage Devices") */
+.health-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.device-item.connected {
+  border-color: var(--color-mint-border);
+  background: var(--color-mint);
+}
+
+.d-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apple-bg { background: var(--color-navy); color: #fff; }
+.google-bg { background: #e0f2fe; color: #0284c7; }
+.garmin-bg { background: #dbeafe; color: #2563eb; }
+.other-bg { background: #f3e8ff; color: #9333ea; }
+
+.d-text { flex: 1; min-width: 0; }
+.d-title { font-size: 14px; font-weight: 700; color: var(--color-text-main); }
+.d-meta { font-size: 12px; color: var(--color-text-dim); transition: color 0.25s ease; }
+.device-item.connected .d-meta { color: var(--color-green-strong); font-weight: 600; }
+
+.btn-d-connect {
+  background: #ffffff;
+  color: var(--color-navy);
+  border: 1px solid var(--color-border-input);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.12s var(--ease-out);
+}
+
+.btn-d-connect:active {
+  transform: scale(0.97);
+}
+
+.device-item.connected .btn-d-connect {
+  background: var(--color-green);
+  color: var(--color-navy);
+  border-color: var(--color-green);
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 99999;
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  box-shadow: 0 10px 25px rgba(15, 31, 61, 0.2);
+}
+
+.toast.is-hidden {
+  opacity: 0;
+  transform: translate(-50%, -12px);
+  pointer-events: none;
+}
+
+.toast.success { background: var(--color-green); color: var(--color-navy); }
+.toast.error { background: var(--color-danger); color: #ffffff; }
+.toast.info { background: var(--color-navy); color: #ffffff; }
+
+/* ==========================================================================
+   MOTION PRIMITIVES
+   ========================================================================== */
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+@keyframes fade-up-sm {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+}
+
+@keyframes grow-y {
+  from { transform: scaleY(0); }
+}
+
+@keyframes shake {
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+/* Cross-page fade between index / login / register / dashboard (supported browsers) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
