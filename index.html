@@ -39,11 +39,13 @@
           <a href="register.html" class="lp-btn lp-btn-dark lp-nav-start" data-i18n="lp.nav.start">Bắt đầu miễn phí</a>
         </div>
       </div>
+      <div class="lp-scroll-progress" aria-hidden="true"></div>
     </header>
 
     <main>
       <!-- HERO -->
       <section class="lp-hero">
+        <div class="lp-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="lp-container lp-hero-grid">
           <div class="lp-hero-copy">
             <span class="lp-badge" data-i18n="lp.hero.badge">Health-to-Earn cho người trẻ đô thị Việt Nam</span>
@@ -75,21 +77,27 @@
           </div>
 
           <div class="lp-hero-visual">
+            <div class="lp-float-chip">
+              <img class="app-icon app-icon-xs" src="assets/img/apps/apple-health.png" alt="" width="20" height="20">
+              <span data-i18n="lp.card.synced">Đã đồng bộ Apple Health</span>
+            </div>
+
+            <div class="lp-tilt">
             <div class="lp-stat-card">
               <div class="lp-stat-head">
                 <span class="lp-overline" data-i18n="lp.card.label">Bước chân hôm nay</span>
                 <span class="lp-chip" data-i18n="lp.card.verified">Đã xác thực AI</span>
               </div>
               <div class="lp-steps">
-                <strong data-i18n="lp.card.steps">8.420</strong>
+                <strong id="lp-live-steps" data-count-to="8420">8.420</strong>
                 <span data-i18n="lp.card.goal">/ 10.000 bước</span>
               </div>
-              <div class="lp-progress"><span></span></div>
+              <div class="lp-progress"><span id="lp-live-progress"></span></div>
               <div class="lp-mini-grid">
                 <div class="lp-mini">
                   <div class="lp-mini-label" data-i18n="lp.card.balance">Số dư FitPoints</div>
-                  <div class="lp-mini-value" data-i18n="lp.card.balanceValue">2.450</div>
-                  <div class="lp-mini-meta lp-mini-meta-green" data-i18n="lp.card.balanceMeta">≈ 122.500đ</div>
+                  <div class="lp-mini-value" data-count-to="2450">2.450</div>
+                  <div class="lp-mini-meta lp-mini-meta-green" data-count-to="122500" data-count-format="currency" data-count-key="lp.card.balanceMeta">≈ 122.500đ</div>
                 </div>
                 <div class="lp-mini">
                   <div class="lp-mini-label" data-i18n="lp.card.streak">Chuỗi ngày</div>
@@ -97,6 +105,7 @@
                   <div class="lp-mini-meta" data-i18n="lp.card.streakMeta">liên tục hoạt động</div>
                 </div>
               </div>
+            </div>
             </div>
 
             <div class="lp-float-toast">
@@ -116,20 +125,47 @@
       <section class="lp-stats">
         <div class="lp-container lp-stats-grid">
           <div>
-            <div class="lp-stat-value" data-i18n="lp.stat1.value">7.000 bước</div>
+            <div class="lp-stat-value" data-count-to="7000" data-count-key="lp.stat1.value" data-count-on="view">7.000 bước</div>
             <div class="lp-stat-label" data-i18n="lp.stat1.label">hoặc 30 phút = 1 ngày hoạt động</div>
           </div>
           <div>
-            <div class="lp-stat-value" data-i18n="lp.stat2.value">1 điểm = 50đ</div>
+            <div class="lp-stat-value" data-count-to="50" data-count-format="currency" data-count-key="lp.stat2.value" data-count-on="view">1 điểm = 50đ</div>
             <div class="lp-stat-label" data-i18n="lp.stat2.label">giá trị quy đổi trực tiếp</div>
           </div>
           <div>
-            <div class="lp-stat-value" data-i18n="lp.stat3.value">100 điểm/ngày</div>
+            <div class="lp-stat-value" data-count-to="100" data-count-key="lp.stat3.value" data-count-on="view">100 điểm/ngày</div>
             <div class="lp-stat-label" data-i18n="lp.stat3.label">mức tích tối đa, vận động vừa sức</div>
           </div>
           <div>
             <div class="lp-stat-value" data-i18n="lp.stat4.value">0đ phí</div>
             <div class="lp-stat-label" data-i18n="lp.stat4.label">không phí giao dịch blockchain</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPS WE CONNECT WITH -->
+      <section class="lp-logos">
+        <div class="lp-container">
+          <p class="lp-logos-title" data-i18n="lp.logos.title">Kết nối với các ứng dụng bạn đang dùng</p>
+        </div>
+        <div class="lp-marquee">
+          <div class="lp-marquee-track">
+              <ul class="lp-marquee-group">
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/apple-health.png" alt="" width="28" height="28"><span>Apple Health</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/health-connect.png" alt="" width="28" height="28"><span>Google Health Connect</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/garmin-connect.png" alt="" width="28" height="28"><span>Garmin Connect</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/momo.png" alt="" width="28" height="28"><span>MoMo</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/zalopay.png" alt="" width="28" height="28"><span>ZaloPay</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/vneid.png" alt="" width="28" height="28"><span>VNeID</span></li>
+              </ul>
+              <ul class="lp-marquee-group" aria-hidden="true">
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/apple-health.png" alt="" width="28" height="28"><span>Apple Health</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/health-connect.png" alt="" width="28" height="28"><span>Google Health Connect</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/garmin-connect.png" alt="" width="28" height="28"><span>Garmin Connect</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/momo.png" alt="" width="28" height="28"><span>MoMo</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/zalopay.png" alt="" width="28" height="28"><span>ZaloPay</span></li>
+                <li class="lp-marquee-item"><img class="app-icon app-icon-sm" src="assets/img/apps/vneid.png" alt="" width="28" height="28"><span>VNeID</span></li>
+              </ul>
           </div>
         </div>
       </section>
@@ -302,6 +338,7 @@
 
       <!-- FINAL CTA -->
       <section class="lp-section lp-final-cta">
+        <div class="lp-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="lp-container lp-center">
           <h2 class="lp-h2" data-i18n="lp.cta.title">Bắt đầu biến thói quen tốt thành tài sản</h2>
           <p class="lp-lead" data-i18n="lp.cta.desc">Đăng ký trong 2 phút. Kết nối thiết bị, đặt mục tiêu và nhận điểm ngay hôm nay.</p>

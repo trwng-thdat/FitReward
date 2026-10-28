@@ -152,6 +152,9 @@
 
 /* Hero */
 .lp-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   background: var(--lp-mint);
   padding: 64px 0 80px;
 }
@@ -225,10 +228,18 @@
 
 /* Hero visual: today's steps card */
 .lp-hero-visual {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 14px;
+}
+
+/* Wrapper rotated by landing.js on pointer move */
+.lp-tilt {
+  width: 100%;
+  max-width: 500px;
+  transform-style: preserve-3d;
 }
 
 .lp-stat-card {
@@ -296,10 +307,13 @@
 
 .lp-progress span {
   display: block;
-  width: 84%;
+  width: 100%;
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #16a34a, #22c55e);
+  transform: scaleX(var(--p, 0.842));
+  transform-origin: left center;
+  transition: transform 0.6s var(--ease-out);
 }
 
 .lp-mini-grid {
@@ -650,6 +664,12 @@
 }
 
 /* Final CTA */
+.lp-final-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
 .lp-final-cta .lp-lead {
   margin-bottom: 28px;
 }
@@ -712,7 +732,8 @@
   .lp-hero-visual {
     align-items: stretch;
   }
-  .lp-stat-card {
+  .lp-stat-card,
+  .lp-tilt {
     max-width: none;
   }
   .lp-float-toast {
@@ -770,7 +791,8 @@
 
 /* ==========================================================================
    LANDING MOTION
-   Marketing surface, seen occasionally: entrance + one-shot scroll reveal.
+   Marketing surface, seen occasionally: entrance, count-ups, live hero card,
+   ambient background, logo marquee and one-shot scroll reveal.
    ========================================================================== */
 
 /* Hero copy: staggered entrance */
@@ -818,7 +840,273 @@
   transform: none;
 }
 
+
+/* ---------- Scroll progress under the sticky header (scroll-driven where supported) ---------- */
+.lp-scroll-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--lp-green-bright);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .lp-scroll-progress {
+    animation: lp-scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes lp-scroll-progress {
+  to { transform: scaleX(1); }
+}
+
+/* ---------- Hero accent: highlighter stroke draws under "giá trị" ---------- */
+.lp-accent {
+  position: relative;
+  display: inline-block;
+  z-index: 0;
+}
+
+.lp-accent::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: 0.06em;
+  height: 0.22em;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.28);
+  z-index: -1;
+  transform-origin: left center;
+  animation: grow-x 0.8s var(--ease-out) 0.75s backwards;
+}
+
+/* ---------- Drifting background blobs (hero + final CTA) ---------- */
+.lp-blobs {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.lp-blobs span {
+  position: absolute;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22), transparent 65%);
+  animation: lp-drift 18s ease-in-out infinite alternate;
+}
+
+.lp-blobs span:nth-child(1) {
+  top: -240px;
+  left: -160px;
+}
+
+.lp-blobs span:nth-child(2) {
+  right: -140px;
+  bottom: -300px;
+  background: radial-gradient(circle, rgba(15, 31, 61, 0.1), transparent 65%);
+  animation-duration: 23s;
+  animation-delay: -7s;
+}
+
+.lp-blobs span:nth-child(3) {
+  top: 20%;
+  left: 42%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.18), transparent 65%);
+  animation-duration: 27s;
+  animation-delay: -13s;
+}
+
+@keyframes lp-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(70px, 40px) scale(1.12); }
+  100% { transform: translate(-40px, 60px) scale(0.95); }
+}
+
+/* ---------- Floating "synced" chip beside the hero card ---------- */
+.lp-float-chip {
+  position: absolute;
+  top: -18px;
+  left: 4%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px -14px rgba(15, 31, 61, 0.45), 0 0 0 1px rgba(15, 31, 61, 0.05);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lp-navy);
+  white-space: nowrap;
+  animation: pop-in 0.5s var(--ease-out) 1.2s backwards, lp-float 7s ease-in-out 1.7s infinite reverse;
+}
+
+/* ---------- App logo marquee ---------- */
+.lp-logos {
+  padding: 36px 0 12px;
+}
+
+.lp-logos-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+.lp-marquee {
+  margin-top: 18px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Two identical groups; shifting by -50% loops seamlessly */
+.lp-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: lp-marquee 36s linear infinite;
+}
+
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+
+.lp-marquee-group {
+  list-style: none;
+  display: flex;
+  gap: 48px;
+  padding-right: 48px;
+}
+
+.lp-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lp-text);
+  white-space: nowrap;
+}
+
+@keyframes lp-marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* ---------- Section details ---------- */
+/* Headings wipe in instead of fading */
+.js-reveal .lp-h2.reveal {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(-10% -5% 110% -5%);
+  transition: clip-path 0.8s var(--ease-in-out) calc(var(--reveal-i, 0) * 70ms);
+}
+
+.js-reveal .lp-h2.reveal.is-visible {
+  clip-path: inset(-10% -5% -25% -5%);
+}
+
+/* Card icons pop in after their card; hover uses the independent rotate/scale properties */
+.js-reveal .reveal .lp-icon,
+.js-reveal .reveal .lp-icon-plain,
+.js-reveal .reveal .app-icon-row .app-icon {
+  opacity: 0;
+  transform: scale(0.6) rotate(-10deg);
+  transition:
+    opacity 0.5s var(--ease-out) calc(var(--reveal-i, 0) * 70ms + 180ms),
+    transform 0.5s var(--ease-out) calc(var(--reveal-i, 0) * 70ms + 180ms),
+    rotate 0.25s var(--ease-out),
+    scale 0.25s var(--ease-out);
+}
+
+.js-reveal .reveal .app-icon-row .app-icon:nth-child(1) { transition-delay: calc(var(--reveal-i, 0) * 70ms + 320ms), calc(var(--reveal-i, 0) * 70ms + 320ms), 0s, 0s; }
+.js-reveal .reveal .app-icon-row .app-icon:nth-child(2) { transition-delay: calc(var(--reveal-i, 0) * 70ms + 380ms), calc(var(--reveal-i, 0) * 70ms + 380ms), 0s, 0s; }
+.js-reveal .reveal .app-icon-row .app-icon:nth-child(3) { transition-delay: calc(var(--reveal-i, 0) * 70ms + 440ms), calc(var(--reveal-i, 0) * 70ms + 440ms), 0s, 0s; }
+
+.js-reveal .reveal.is-visible .lp-icon,
+.js-reveal .reveal.is-visible .lp-icon-plain,
+.js-reveal .reveal.is-visible .app-icon-row .app-icon {
+  opacity: 1;
+  transform: none;
+}
+
+.lp-btn svg {
+  transition: transform 0.2s var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-btn:hover svg {
+    transform: translateX(3px);
+  }
+  .lp-card:hover .lp-icon,
+  .lp-card:hover .lp-icon-plain {
+    rotate: -8deg;
+    scale: 1.08;
+  }
+  .lp-plan:hover {
+    translate: 0 -4px;
+    box-shadow: var(--shadow-hover);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .lp-blobs span,
+  .lp-accent::after,
+  .lp-marquee-track {
+    animation: none;
+  }
+  .lp-float-chip {
+    animation: fade-in 0.3s ease 0.3s backwards;
+  }
+  .lp-marquee {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .lp-marquee-track,
+  .lp-marquee-group {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px 32px;
+    padding: 0 16px;
+  }
+  .lp-marquee-group[aria-hidden="true"] {
+    display: none;
+  }
+  .js-reveal .lp-h2.reveal {
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .js-reveal .lp-h2.reveal.is-visible {
+    opacity: 1;
+  }
+  .js-reveal .reveal .lp-icon,
+  .js-reveal .reveal .lp-icon-plain,
+  .js-reveal .reveal .app-icon-row .app-icon,
+  .lp-btn:hover svg {
+    transform: none;
+  }
+  .lp-card:hover .lp-icon,
+  .lp-card:hover .lp-icon-plain {
+    rotate: none;
+    scale: none;
+  }
+  .lp-plan:hover {
+    translate: none;
+  }
   .lp-hero-copy > *,
   .lp-stat-card {
     animation: fade-in 0.3s ease backwards;
