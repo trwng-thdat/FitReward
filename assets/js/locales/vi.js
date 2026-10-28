@@ -143,7 +143,7 @@ window.TRANSLATIONS.vi = {
   'auth.register.submit': 'Tiếp tục',
 
   'auth.field.name': 'Họ và tên',
-  'auth.field.namePlaceholder': 'Nguyễn Minh Anh',
+  'auth.field.namePlaceholder': 'Nguyễn Ngọc Phương Anh',
   'auth.field.email': 'Email',
   'auth.field.emailOrPhone': 'Email hoặc số điện thoại',
   'auth.field.phone': 'Số điện thoại',

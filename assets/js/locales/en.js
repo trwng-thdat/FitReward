@@ -143,7 +143,7 @@ window.TRANSLATIONS.en = {
   'auth.register.submit': 'Continue',
 
   'auth.field.name': 'Full name',
-  'auth.field.namePlaceholder': 'Minh Anh Nguyen',
+  'auth.field.namePlaceholder': 'Nguyễn Ngọc Phương Anh',
   'auth.field.email': 'Email',
   'auth.field.emailOrPhone': 'Email or phone number',
   'auth.field.phone': 'Phone number',
