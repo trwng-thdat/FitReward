@@ -1,7 +1,7 @@
 /**
  * FitReward - Application Controller & Fintech Dashboard Engine
- * Handles Authentication, LocalStorage Data Models, Real-time Dashboard Sync,
- * Navigation Tabs, Device Status, and Rewards Redemption.
+ * Handles Landing / Auth / Dashboard views, LocalStorage Data Models, Real-time Dashboard Sync,
+ * Navigation Tabs, Device Status, Rewards Redemption and Language switching (see i18n.js).
  */
 
 // Simple Email Validation Regex conforming to standard email patterns
@@ -13,6 +13,21 @@ const DEVICE_KEY_MAP = {
   google: 'googleHealthConnect',
   garmin: 'garminConnect',
   other: 'otherWearables'
+};
+
+// Transaction icons per category (dashboard feed)
+const TX_ICONS = {
+  walk: { bg: 'bg-blue', svg: '<polyline points="20 6 9 17 4 12"></polyline>' },
+  workout: { bg: 'bg-purple', svg: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>' },
+  challenge: { bg: 'bg-amber', svg: '<circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>' },
+  reward: { bg: 'bg-amber', svg: '<polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line>' }
+};
+
+// Translation keys for the seeded transactions (ids 1-3), used to migrate older untranslated data
+const SEED_TX_KEYS = {
+  1: { titleKey: 'tx.walk', timeKey: 'tx.walk.time' },
+  2: { titleKey: 'tx.workout', timeKey: 'tx.workout.time' },
+  3: { titleKey: 'tx.weekly', timeKey: 'tx.weekly.time' }
 };
 
 // =========================================================================
@@ -28,7 +43,6 @@ function initFitRewardStorage() {
       todaySteps: 7240,
       dailyGoal: 7000,
       activeMinutes: 42,
-      activeMinutesChange: '+12% vs last week',
       currentStreak: 6,
       weeklyChart: [
         { day: 'Mon', steps: 6100, height: 65 },
@@ -45,8 +59,7 @@ function initFitRewardStorage() {
 
   if (!localStorage.getItem('fitRewardPoints')) {
     const defaultPoints = {
-      balance: 850,
-      weeklyEarnings: '+150 this week'
+      balance: 850
     };
     localStorage.setItem('fitRewardPoints', JSON.stringify(defaultPoints));
   }
@@ -55,8 +68,6 @@ function initFitRewardStorage() {
     const defaultChallenges = [
       {
         id: 'daily-steps',
-        title: 'Walk 7,000 steps',
-        subtitle: 'Complete your daily step milestone to earn FitPoints.',
         current: 7240,
         goal: 7000,
         pct: 100,
@@ -66,8 +77,6 @@ function initFitRewardStorage() {
       },
       {
         id: 'weekly-streak',
-        title: '7-Day Walking Challenge',
-        subtitle: 'Maintain a 7-day active walking streak.',
         current: 5,
         goal: 7,
         pct: 71,
@@ -79,46 +88,60 @@ function initFitRewardStorage() {
     localStorage.setItem('fitRewardChallenges', JSON.stringify(defaultChallenges));
   }
 
-  if (!localStorage.getItem('fitRewardTransactions')) {
+  // Transactions store translation keys instead of display text so they follow the active language
+  const rawTransactions = localStorage.getItem('fitRewardTransactions');
+  if (!rawTransactions) {
     const defaultTransactions = [
-      { id: 1, title: 'Walking — 7,000 steps', time: 'Today, 18:30 • Verified Sensor', points: 100, type: 'earn', category: 'walk' },
-      { id: 2, title: 'Workout — 30 minutes', time: 'Yesterday, 07:15 • Heart Rate Log', points: 50, type: 'earn', category: 'workout' },
-      { id: 3, title: 'Weekly Challenge', time: '3 days ago • Milestone Streak', points: 300, type: 'earn', category: 'challenge' }
+      { id: 1, titleKey: 'tx.walk', timeKey: 'tx.walk.time', points: 100, type: 'earn', category: 'walk' },
+      { id: 2, titleKey: 'tx.workout', timeKey: 'tx.workout.time', points: 50, type: 'earn', category: 'workout' },
+      { id: 3, titleKey: 'tx.weekly', timeKey: 'tx.weekly.time', points: 300, type: 'earn', category: 'challenge' }
     ];
     localStorage.setItem('fitRewardTransactions', JSON.stringify(defaultTransactions));
+  } else {
+    const txList = JSON.parse(rawTransactions);
+    let migrated = false;
+    txList.forEach(tx => {
+      if (!tx.titleKey && SEED_TX_KEYS[tx.id]) {
+        Object.assign(tx, SEED_TX_KEYS[tx.id]);
+        migrated = true;
+      }
+    });
+    if (migrated) localStorage.setItem('fitRewardTransactions', JSON.stringify(txList));
   }
 }
 
+function getTxTitle(tx) {
+  if (!tx.titleKey) return tx.title;
+  return t(tx.titleKey, { reward: tx.rewardId ? t(`reward.${tx.rewardId}.name`) : '' });
+}
+
+function getTxTime(tx) {
+  return tx.timeKey ? t(tx.timeKey) : tx.time;
+}
+
 // =========================================================================
-// 2. VIEW SWITCHER (AUTH VIEW vs AUTHENTICATED DASHBOARD SHELL)
+// 2. VIEW SWITCHER (LANDING vs AUTH VIEW vs AUTHENTICATED DASHBOARD SHELL)
 // =========================================================================
 
 /**
- * Toggles visibility between the split-screen authentication view and the authenticated dashboard shell.
+ * Shows exactly one of the three top-level views: 'landing', 'auth' or 'dashboard'.
  */
 function setAppView(viewType) {
-  const authLayout = document.getElementById('auth-app-view');
-  const dashboardLayout = document.getElementById('app-dashboard-layout');
+  const views = {
+    landing: document.getElementById('landing-view'),
+    auth: document.getElementById('auth-app-view'),
+    dashboard: document.getElementById('app-dashboard-layout')
+  };
+
+  Object.keys(views).forEach(key => {
+    if (views[key]) views[key].classList.toggle('hidden', key !== viewType);
+  });
+
+  currentView = viewType;
+  window.scrollTo(0, 0);
 
   if (viewType === 'dashboard') {
-    if (authLayout) {
-      authLayout.classList.add('hidden');
-      authLayout.style.display = 'none';
-    }
-    if (dashboardLayout) {
-      dashboardLayout.classList.remove('hidden');
-      dashboardLayout.style.display = 'flex';
-    }
     renderDashboard();
-  } else {
-    if (dashboardLayout) {
-      dashboardLayout.classList.add('hidden');
-      dashboardLayout.style.display = 'none';
-    }
-    if (authLayout) {
-      authLayout.classList.remove('hidden');
-      authLayout.style.display = 'flex';
-    }
   }
 }
 
@@ -126,9 +149,16 @@ function setAppView(viewType) {
 // 3. AUTHENTICATION & ONBOARDING ROUTING
 // =========================================================================
 
-let currentScreen = 'welcome';
+let currentView = 'landing';
+let currentScreen = 'login';
+let currentTab = 'dashboard';
 
 function navigateTo(screenName) {
+  if (screenName === 'landing') {
+    setAppView('landing');
+    return;
+  }
+
   // If user requests dashboard, ensure authenticated view is displayed
   if (screenName === 'dashboard') {
     setAppView('dashboard');
@@ -165,16 +195,12 @@ function updateFooterState(screenName) {
 
   if (screenName === 'register') {
     footerContainer.style.display = 'block';
-    footerText.textContent = 'Have an account?';
-    footerActionBtn.textContent = 'Sign in';
+    footerText.textContent = t('auth.footer.haveAccount');
+    footerActionBtn.textContent = t('auth.footer.signIn');
   } else if (screenName === 'login') {
     footerContainer.style.display = 'block';
-    footerText.textContent = "Don't have an account?";
-    footerActionBtn.textContent = 'Sign up';
-  } else if (screenName === 'welcome') {
-    footerContainer.style.display = 'block';
-    footerText.textContent = 'Already have an account?';
-    footerActionBtn.textContent = 'Sign in';
+    footerText.textContent = t('auth.footer.noAccount');
+    footerActionBtn.textContent = t('auth.footer.signUp');
   } else {
     footerContainer.style.display = 'none';
   }
@@ -225,7 +251,7 @@ function togglePasswordVisibility(inputId, buttonEl) {
         <line x1="1" y1="1" x2="23" y2="23"></line>
       </svg>
     `;
-    buttonEl.setAttribute('aria-label', 'Ẩn mật khẩu');
+    buttonEl.setAttribute('aria-label', t('aria.hidePassword'));
   } else {
     buttonEl.innerHTML = `
       <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -233,7 +259,7 @@ function togglePasswordVisibility(inputId, buttonEl) {
         <circle cx="12" cy="12" r="3"></circle>
       </svg>
     `;
-    buttonEl.setAttribute('aria-label', 'Hiển thị mật khẩu');
+    buttonEl.setAttribute('aria-label', t('aria.showPassword'));
   }
 }
 
@@ -268,23 +294,23 @@ function handleRegister(event) {
   let hasError = false;
 
   if (!username) {
-    showInputError('reg-name', 'reg-name-error', 'Vui lòng nhập họ và tên của bạn');
+    showInputError('reg-name', 'reg-name-error', t('err.nameRequired'));
     hasError = true;
   }
 
   if (!email) {
-    showInputError('reg-email', 'reg-email-error', 'Vui lòng nhập địa chỉ email');
+    showInputError('reg-email', 'reg-email-error', t('err.emailRequired'));
     hasError = true;
   } else if (!EMAIL_REGEX.test(email)) {
-    showInputError('reg-email', 'reg-email-error', 'Email không đúng định dạng (vd: user@example.com)');
+    showInputError('reg-email', 'reg-email-error', t('err.emailInvalid'));
     hasError = true;
   }
 
   if (!password) {
-    showInputError('reg-password', 'reg-password-error', 'Vui lòng nhập mật khẩu');
+    showInputError('reg-password', 'reg-password-error', t('err.passwordRequired'));
     hasError = true;
   } else if (password.length < 6) {
-    showInputError('reg-password', 'reg-password-error', 'Mật khẩu phải từ 6 ký tự trở lên');
+    showInputError('reg-password', 'reg-password-error', t('err.passwordShort'));
     hasError = true;
   }
 
@@ -292,7 +318,7 @@ function handleRegister(event) {
 
   const existingUser = localStorage.getItem(email);
   if (existingUser) {
-    showInputError('reg-email', 'reg-email-error', 'Email này đã được sử dụng!');
+    showInputError('reg-email', 'reg-email-error', t('err.emailTaken'));
     return;
   }
 
@@ -309,13 +335,13 @@ function handleRegister(event) {
     localStorage.setItem(email, JSON.stringify(userObject));
     localStorage.setItem('currentEmail', email);
 
-    showToast('Đăng ký tài khoản thành công!', 'success');
+    showToast(t('toast.registerSuccess'), 'success');
     document.getElementById('register-form').reset();
 
     // Immediately open authenticated dashboard
     setAppView('dashboard');
   } catch (error) {
-    showToast('Lỗi khi lưu trữ dữ liệu cục bộ.', 'error');
+    showToast(t('toast.storageError'), 'error');
   }
 }
 
@@ -332,15 +358,15 @@ function handleLogin(event) {
   let hasError = false;
 
   if (!email) {
-    showInputError('login-email', 'login-email-error', 'Vui lòng nhập email');
+    showInputError('login-email', 'login-email-error', t('err.emailRequired'));
     hasError = true;
   } else if (!EMAIL_REGEX.test(email)) {
-    showInputError('login-email', 'login-email-error', 'Email không đúng định dạng');
+    showInputError('login-email', 'login-email-error', t('err.emailInvalid'));
     hasError = true;
   }
 
   if (!password) {
-    showInputError('login-password', 'login-password-error', 'Vui lòng nhập mật khẩu');
+    showInputError('login-password', 'login-password-error', t('err.passwordRequired'));
     hasError = true;
   }
 
@@ -349,8 +375,8 @@ function handleLogin(event) {
   const rawData = localStorage.getItem(email);
 
   if (!rawData) {
-    showInputError('login-email', 'login-email-error', 'Tài khoản không tồn tại trên hệ thống!');
-    showToast('Tài khoản hoặc mật khẩu không đúng!', 'error');
+    showInputError('login-email', 'login-email-error', t('err.accountNotFound'));
+    showToast(t('toast.loginFailed'), 'error');
     return;
   }
 
@@ -372,13 +398,13 @@ function handleLogin(event) {
   }
 
   if (password !== storedPassword) {
-    showInputError('login-password', 'login-password-error', 'Mật khẩu không chính xác!');
-    showToast('Mật khẩu không chính xác!', 'error');
+    showInputError('login-password', 'login-password-error', t('err.passwordWrong'));
+    showToast(t('err.passwordWrong'), 'error');
     return;
   }
 
   localStorage.setItem('currentEmail', email);
-  showToast(`Xin chào, ${storedUsername}!`, 'success');
+  showToast(t('toast.welcome', { name: storedUsername }), 'success');
 
   document.getElementById('login-form').reset();
   setAppView('dashboard');
@@ -386,8 +412,9 @@ function handleLogin(event) {
 
 function handleLogout() {
   localStorage.removeItem('currentEmail');
-  showToast('Đã đăng xuất thành công.', 'info');
-  navigateTo('welcome');
+  showToast(t('toast.logout'), 'info');
+  switchTab('dashboard');
+  navigateTo('landing');
 }
 
 // =========================================================================
@@ -410,15 +437,16 @@ function handleToggleDevice(deviceId, deviceTitle) {
 
   if (isCurrentlyConnected) {
     userObject[propKey] = false;
-    showToast(`Đã ngắt kết nối với ${deviceTitle}.`, 'info');
+    showToast(t('toast.deviceDisconnected', { device: deviceTitle }), 'info');
   } else {
     userObject[propKey] = true;
-    showToast(`Kết nối thành công với ${deviceTitle}!`, 'success');
+    showToast(t('toast.deviceConnected', { device: deviceTitle }), 'success');
   }
 
   localStorage.setItem(currentEmail, JSON.stringify(userObject));
   renderUserDeviceStates();
   renderDashboard();
+  if (currentTab === 'devices') switchTab('devices');
 }
 
 function renderUserDeviceStates() {
@@ -444,15 +472,13 @@ function renderUserDeviceStates() {
     const btn = document.getElementById(`btn-device-${deviceId}`);
 
     if (row && statusEl && btn) {
-      if (isConnected) {
-        row.classList.add('connected');
-        statusEl.textContent = 'Đã kết nối';
-        btn.textContent = 'Connected';
-      } else {
-        row.classList.remove('connected');
-        statusEl.textContent = 'Chưa kết nối';
-        btn.textContent = 'Connect';
-      }
+      const statusKey = isConnected ? 'device.status.connected' : 'device.status.notConnected';
+      const btnKey = isConnected ? 'device.btn.connected' : 'device.btn.connect';
+      row.classList.toggle('connected', isConnected);
+      statusEl.dataset.i18n = statusKey;
+      statusEl.textContent = t(statusKey);
+      btn.dataset.i18n = btnKey;
+      btn.textContent = t(btnKey);
     }
   });
 }
@@ -492,54 +518,89 @@ function renderDashboard() {
 
   const kpiPoints = document.getElementById('kpi-fitpoints');
   if (kpiPoints) {
-    kpiPoints.innerHTML = `${pointsData.balance.toLocaleString()} <span class="sc-unit">PTS</span>`;
+    kpiPoints.innerHTML = `${formatNumber(pointsData.balance)} <span class="sc-unit">${t('unit.pts')}</span>`;
   }
 
   const kpiSteps = document.getElementById('kpi-steps');
   if (kpiSteps) {
-    kpiSteps.innerHTML = `${activityData.todaySteps.toLocaleString()} <span class="sc-goal">/ ${activityData.dailyGoal.toLocaleString()}</span>`;
+    kpiSteps.innerHTML = `${formatNumber(activityData.todaySteps)} <span class="sc-goal">/ ${formatNumber(activityData.dailyGoal)}</span>`;
   }
 
   const kpiActiveMin = document.getElementById('kpi-active-min');
   if (kpiActiveMin) {
-    kpiActiveMin.innerHTML = `${activityData.activeMinutes} <span class="sc-unit">min</span>`;
+    kpiActiveMin.innerHTML = `${activityData.activeMinutes} <span class="sc-unit">${t('unit.min')}</span>`;
   }
 
   const kpiStreak = document.getElementById('kpi-streak');
   if (kpiStreak) {
-    kpiStreak.innerHTML = `🔥 ${activityData.currentStreak} <span class="sc-unit">days</span>`;
+    kpiStreak.innerHTML = `🔥 ${activityData.currentStreak} <span class="sc-unit">${t('unit.days')}</span>`;
   }
 
   // 3. Activity Overview
+  const chartBars = document.getElementById('chart-bars');
+  if (chartBars && Array.isArray(activityData.weeklyChart)) {
+    chartBars.innerHTML = activityData.weeklyChart.map(bar => `
+      <div class="bar-col ${bar.isToday ? 'today' : ''}">
+        <div class="bar-fill ${bar.isToday ? 'highlight' : ''}" style="height: ${bar.height}%;">
+          <div class="bar-tooltip">${t('chart.stepsTooltip', { steps: formatNumber(bar.steps) })}</div>
+        </div>
+        <span class="bar-day">${t(`day.${bar.day.toLowerCase()}`)}</span>
+      </div>
+    `).join('');
+  }
+
   const todayStepsLabel = document.getElementById('chart-today-steps');
   const dailyGoalLabel = document.getElementById('chart-daily-goal');
-  if (todayStepsLabel) todayStepsLabel.textContent = `${activityData.todaySteps.toLocaleString()} steps today`;
-  if (dailyGoalLabel) dailyGoalLabel.textContent = `Goal: ${activityData.dailyGoal.toLocaleString()} steps`;
+  if (todayStepsLabel) todayStepsLabel.textContent = t('chart.todaySteps', { steps: formatNumber(activityData.todaySteps) });
+  if (dailyGoalLabel) dailyGoalLabel.textContent = t('chart.goal', { goal: formatNumber(activityData.dailyGoal) });
 
   // 4. Today's Challenge progress
   const tcVal = document.getElementById('today-challenge-val');
-  if (tcVal) tcVal.textContent = `${activityData.todaySteps.toLocaleString()} / ${activityData.dailyGoal.toLocaleString()} steps`;
+  if (tcVal) {
+    tcVal.textContent = t('challenge.progress', {
+      current: formatNumber(activityData.todaySteps),
+      goal: formatNumber(activityData.dailyGoal)
+    });
+  }
 
-  // 5. Health Data sync badges on Dashboard
-  const appleBadge = document.getElementById('dash-device-apple');
-  const googleBadge = document.getElementById('dash-device-google');
-  const garminBadge = document.getElementById('dash-device-garmin');
+  // 5. FitPoints Activity feed (latest 3 transactions)
+  const txContainer = document.getElementById('transactions-list-container');
+  if (txContainer) {
+    const txList = JSON.parse(localStorage.getItem('fitRewardTransactions') || '[]');
+    txContainer.innerHTML = txList.slice(0, 3).map(tx => {
+      const icon = TX_ICONS[tx.category] || TX_ICONS.walk;
+      const isEarn = tx.points > 0;
+      return `
+        <div class="tx-row">
+          <div class="tx-icon-box ${icon.bg}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">${icon.svg}</svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-title">${getTxTitle(tx)}</div>
+            <div class="tx-time">${getTxTime(tx)}</div>
+          </div>
+          <div class="tx-points ${isEarn ? 'positive' : ''}" style="${isEarn ? '' : 'color: var(--color-danger);'}">
+            ${isEarn ? '+' + formatNumber(tx.points) : formatNumber(tx.points)}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 
-  if (appleBadge) {
-    const isConn = currentUser.appleHealth !== false;
-    appleBadge.textContent = isConn ? '✓ Connected' : 'Not Connected';
-    appleBadge.className = isConn ? 'sync-badge' : 'sync-badge pending';
-  }
-  if (googleBadge) {
-    const isConn = currentUser.googleHealthConnect !== false;
-    googleBadge.textContent = isConn ? '✓ Connected' : 'Not Connected';
-    googleBadge.className = isConn ? 'sync-badge' : 'sync-badge pending';
-  }
-  if (garminBadge) {
-    const isConn = currentUser.garminConnect !== false;
-    garminBadge.textContent = isConn ? '✓ Connected' : 'Not Connected';
-    garminBadge.className = isConn ? 'sync-badge' : 'sync-badge pending';
-  }
+  // 6. Health Data sync badges on Dashboard
+  const syncBadges = {
+    'dash-device-apple': currentUser.appleHealth,
+    'dash-device-google': currentUser.googleHealthConnect,
+    'dash-device-garmin': currentUser.garminConnect
+  };
+
+  Object.keys(syncBadges).forEach(badgeId => {
+    const badge = document.getElementById(badgeId);
+    if (!badge) return;
+    const isConn = syncBadges[badgeId] !== false;
+    badge.textContent = isConn ? t('sync.connected') : t('sync.notConnected');
+    badge.className = isConn ? 'sync-badge' : 'sync-badge pending';
+  });
 }
 
 // Claim Daily Challenge Reward (+100 FitPoints)
@@ -552,24 +613,29 @@ function claimDailyReward() {
   const txList = JSON.parse(localStorage.getItem('fitRewardTransactions') || '[]');
   txList.unshift({
     id: Date.now(),
-    title: 'Daily Challenge — 7,000 steps',
-    time: 'Just now • Verified Sensor',
+    titleKey: 'tx.daily',
+    timeKey: 'tx.daily.time',
     points: 100,
     type: 'earn',
     category: 'walk'
   });
   localStorage.setItem('fitRewardTransactions', JSON.stringify(txList));
 
-  showToast('Đã nhận thưởng +100 FitPoints cho hôm nay!', 'success');
+  showToast(t('toast.claimed'), 'success');
   renderDashboard();
 }
 
-// Reward Redemption Action Flow
-function handleRedeemReward(rewardType, cost, title) {
+// Reward Redemption Action Flow (rewardId maps to the reward.<id>.name translation)
+function handleRedeemReward(rewardId, cost) {
   const pointsData = JSON.parse(localStorage.getItem('fitRewardPoints') || '{"balance": 850}');
+  const rewardName = t(`reward.${rewardId}.name`);
 
   if (pointsData.balance < cost) {
-    showToast(`Bạn cần tối thiểu ${cost} FitPoints để đổi ${title}. (Hiện có: ${pointsData.balance} PTS)`, 'error');
+    showToast(t('toast.notEnoughPoints', {
+      cost: formatNumber(cost),
+      reward: rewardName,
+      balance: formatNumber(pointsData.balance)
+    }), 'error');
     return;
   }
 
@@ -581,16 +647,18 @@ function handleRedeemReward(rewardType, cost, title) {
   const txList = JSON.parse(localStorage.getItem('fitRewardTransactions') || '[]');
   txList.unshift({
     id: Date.now(),
-    title: `Đổi quà: ${title}`,
-    time: 'Vừa xong • Đã duyệt hoàn tiền',
+    titleKey: 'tx.redeem',
+    timeKey: 'tx.redeem.time',
+    rewardId: rewardId,
     points: -cost,
     type: 'redeem',
     category: 'reward'
   });
   localStorage.setItem('fitRewardTransactions', JSON.stringify(txList));
 
-  showToast(`Đổi quà thành công! Đã quy đổi ${cost} FitPoints cho ${title}.`, 'success');
+  showToast(t('toast.redeemSuccess', { cost: formatNumber(cost), reward: rewardName }), 'success');
   renderDashboard();
+  if (currentTab === 'rewards') switchTab('rewards');
 }
 
 // =========================================================================
@@ -598,6 +666,8 @@ function handleRedeemReward(rewardType, cost, title) {
 // =========================================================================
 
 function switchTab(tabName) {
+  currentTab = tabName;
+
   // Update sidebar active highlights
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
   const targetNav = document.getElementById(`nav-${tabName}`);
@@ -611,7 +681,7 @@ function switchTab(tabName) {
   const pageTitle = document.getElementById('page-title');
 
   if (tabName === 'dashboard') {
-    if (pageTitle) pageTitle.textContent = 'Dashboard';
+    if (pageTitle) pageTitle.textContent = t('page.dashboard');
     if (dashContent) dashContent.classList.remove('hidden');
     if (subpageContainer) subpageContainer.classList.add('hidden');
     renderDashboard();
@@ -622,128 +692,125 @@ function switchTab(tabName) {
   if (dashContent) dashContent.classList.add('hidden');
   if (subpageContainer) subpageContainer.classList.remove('hidden');
 
-  let title = 'Section';
+  let title = t(`page.${tabName}`);
   let html = '';
 
   if (tabName === 'activity') {
-    title = 'Activity Details';
     const activityData = JSON.parse(localStorage.getItem('fitRewardActivity') || '{}');
     html = `
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Chi Tiết Hoạt Động & Bước Chân</h2>
-            <p class="card-desc">Dữ liệu đồng bộ trực tiếp từ Apple Health & Garmin</p>
+            <h2 class="card-title">${t('sp.activity.title')}</h2>
+            <p class="card-desc">${t('sp.activity.desc')}</p>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="showToast('Đang quét cảm biến thiết bị...', 'info')">Đồng bộ ngay</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast(t('toast.syncing'), 'info')">${t('sp.activity.syncNow')}</button>
         </div>
         <div class="summary-cards-grid">
           <div class="summary-card">
-            <span class="sc-label">Hôm nay</span>
-            <div class="sc-value text-blue">${activityData.todaySteps?.toLocaleString() || 7240} bước</div>
+            <span class="sc-label">${t('sp.activity.today')}</span>
+            <div class="sc-value text-blue">${t('sp.activity.steps', { steps: formatNumber(activityData.todaySteps || 7240) })}</div>
           </div>
           <div class="summary-card">
-            <span class="sc-label">Cự ly ước tính</span>
-            <div class="sc-value">5.4 km</div>
+            <span class="sc-label">${t('sp.activity.distance')}</span>
+            <div class="sc-value">${formatNumber(5.4)} km</div>
           </div>
           <div class="summary-card">
-            <span class="sc-label">Calo tiêu hao</span>
+            <span class="sc-label">${t('sp.activity.calories')}</span>
             <div class="sc-value">340 kcal</div>
           </div>
           <div class="summary-card">
-            <span class="sc-label">Thời gian vận động</span>
-            <div class="sc-value">42 phút</div>
+            <span class="sc-label">${t('sp.activity.activeTime')}</span>
+            <div class="sc-value">${t('sp.activity.minutes', { minutes: activityData.activeMinutes || 42 })}</div>
           </div>
         </div>
       </div>
     `;
   } else if (tabName === 'rewards') {
-    title = 'Rewards Catalog';
     const pointsData = JSON.parse(localStorage.getItem('fitRewardPoints') || '{"balance":850}');
     html = `
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Kho Phần Thưởng FitReward</h2>
-            <p class="card-desc">Số dư khả dụng: <strong class="text-blue">${pointsData.balance} PTS</strong></p>
+            <h2 class="card-title">${t('sp.rewards.title')}</h2>
+            <p class="card-desc">${t('sp.rewards.balance')} <strong class="text-blue">${formatNumber(pointsData.balance)} ${t('unit.pts')}</strong></p>
           </div>
         </div>
         <div class="reward-cards-column">
           <div class="reward-item-row">
             <div class="reward-icon-box bg-green-soft">₫</div>
             <div class="reward-meta">
-              <div class="reward-name">₫20,000 Cashback Ví MoMo</div>
-              <div class="reward-cost">500 FitPoints • Rút tiền tức thì</div>
+              <div class="reward-name">${t('reward.cashbackMomo.name')}</div>
+              <div class="reward-cost">${t('reward.cashbackMomo.cost')}</div>
             </div>
-            <button class="btn-reward-action" onclick="handleRedeemReward('cashback', 500, '₫20,000 Cashback MoMo')">Redeem</button>
+            <button class="btn-reward-action" onclick="handleRedeemReward('cashbackMomo', 500)">${t('btn.redeem')}</button>
           </div>
           <div class="reward-item-row">
             <div class="reward-icon-box bg-green-soft">₫</div>
             <div class="reward-meta">
-              <div class="reward-name">₫50,000 Cashback Chuyển Khoản VietQR</div>
-              <div class="reward-cost">1,200 FitPoints • Ngân hàng liên kết</div>
+              <div class="reward-name">${t('reward.cashback50.name')}</div>
+              <div class="reward-cost">${t('reward.cashback50.cost')}</div>
             </div>
-            <button class="btn-reward-action" onclick="handleRedeemReward('cashback50', 1200, '₫50,000 VietQR')">Redeem</button>
+            <button class="btn-reward-action" onclick="handleRedeemReward('cashback50', 1200)">${t('btn.redeem')}</button>
           </div>
           <div class="reward-item-row">
             <div class="reward-icon-box bg-blue-soft">🏋️</div>
             <div class="reward-meta">
-              <div class="reward-name">Vé Tập Gym 1 Ngày (California / CityGym)</div>
-              <div class="reward-cost">300 FitPoints • Mã QR tại quầy</div>
+              <div class="reward-name">${t('reward.gymDay.name')}</div>
+              <div class="reward-cost">${t('reward.gymDay.cost')}</div>
             </div>
-            <button class="btn-reward-action" onclick="handleRedeemReward('gym', 300, 'Vé Gym 1 Ngày')">Redeem</button>
+            <button class="btn-reward-action" onclick="handleRedeemReward('gymDay', 300)">${t('btn.redeem')}</button>
           </div>
           <div class="reward-item-row">
             <div class="reward-icon-box bg-purple-soft">🛡️</div>
             <div class="reward-meta">
-              <div class="reward-name">Voucher Giảm 10% Phí Bảo Hiểm Bảo Việt</div>
-              <div class="reward-cost">1,000 FitPoints • Hợp đồng mới hoặc tái tục</div>
+              <div class="reward-name">${t('reward.insuranceBaoViet.name')}</div>
+              <div class="reward-cost">${t('reward.insuranceBaoViet.cost')}</div>
             </div>
-            <button class="btn-reward-action btn-outline-action" onclick="handleRedeemReward('insurance', 1000, 'Voucher Bảo Hiểm Bảo Việt')">View</button>
+            <button class="btn-reward-action btn-outline-action" onclick="handleRedeemReward('insuranceBaoViet', 1000)">${t('btn.view')}</button>
           </div>
         </div>
       </div>
     `;
   } else if (tabName === 'challenges') {
-    title = 'Challenges & Goals';
+    const activityData = JSON.parse(localStorage.getItem('fitRewardActivity') || '{"todaySteps": 7240, "dailyGoal": 7000}');
     html = `
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Thử Thách Thể Chất FitReward</h2>
-            <p class="card-desc">Hoàn thành thử thách để nhận FitPoints và duy trì chuỗi Streak</p>
+            <h2 class="card-title">${t('sp.challenges.title')}</h2>
+            <p class="card-desc">${t('sp.challenges.desc')}</p>
           </div>
         </div>
         <div class="reward-cards-column">
           <div class="reward-item-row">
             <div class="reward-icon-box bg-green-soft">✓</div>
             <div class="reward-meta">
-              <div class="reward-name">Mục Tiêu Ngày: Đi bộ 7,000 bước</div>
-              <div class="reward-cost">Đã đạt 7,240 / 7,000 bước • Thưởng +100 FitPoints</div>
+              <div class="reward-name">${t('sp.challenges.daily.name')}</div>
+              <div class="reward-cost">${t('sp.challenges.daily.meta', { current: formatNumber(activityData.todaySteps), goal: formatNumber(activityData.dailyGoal) })}</div>
             </div>
-            <button class="btn btn-sm btn-outline-success" onclick="claimDailyReward()">Nhận Thưởng</button>
+            <button class="btn btn-sm btn-outline-success" onclick="claimDailyReward()">${t('sp.challenges.claim')}</button>
           </div>
           <div class="reward-item-row">
             <div class="reward-icon-box bg-blue-soft">🔥</div>
             <div class="reward-meta">
-              <div class="reward-name">Thử Thách 7 Ngày Liên Tục (Streak Master)</div>
-              <div class="reward-cost">Tiến độ: 5 / 7 ngày • Thưởng +300 FitPoints</div>
+              <div class="reward-name">${t('sp.challenges.streak.name')}</div>
+              <div class="reward-cost">${t('sp.challenges.streak.meta')}</div>
             </div>
-            <button class="btn btn-sm btn-primary" onclick="showToast('Tiếp tục duy trì bước chân hôm nay để chạm mốc 7 ngày!', 'info')">Tiếp Tục</button>
+            <button class="btn btn-sm btn-primary" onclick="showToast(t('toast.streakKeepGoing'), 'info')">${t('sp.challenges.continue')}</button>
           </div>
           <div class="reward-item-row">
             <div class="reward-icon-box bg-purple-soft">👥</div>
             <div class="reward-meta">
-              <div class="reward-name">Thử Thách Gia Đình: 50,000 Bước / Tuần</div>
-              <div class="reward-cost">Tham gia cùng các thành viên • Thưởng +500 FitPoints</div>
+              <div class="reward-name">${t('sp.challenges.family.name')}</div>
+              <div class="reward-cost">${t('sp.challenges.family.meta')}</div>
             </div>
-            <button class="btn btn-sm btn-outline" onclick="showToast('Đã mời các thành viên gia đình tham gia!', 'success')">Tham Gia</button>
+            <button class="btn btn-sm btn-outline" onclick="showToast(t('toast.familyInvited'), 'success')">${t('sp.challenges.join')}</button>
           </div>
         </div>
       </div>
     `;
   } else if (tabName === 'history') {
-    title = 'Reward History';
     const txList = JSON.parse(localStorage.getItem('fitRewardTransactions') || '[]');
     const rowsHtml = txList.map(tx => `
       <div class="tx-row">
@@ -751,11 +818,11 @@ function switchTab(tabName) {
           ${tx.type === 'redeem' ? '🎁' : '✓'}
         </div>
         <div class="tx-info">
-          <div class="tx-title">${tx.title}</div>
-          <div class="tx-time">${tx.time}</div>
+          <div class="tx-title">${getTxTitle(tx)}</div>
+          <div class="tx-time">${getTxTime(tx)}</div>
         </div>
         <div class="tx-points ${tx.points > 0 ? 'positive' : ''}" style="${tx.points < 0 ? 'color: var(--color-danger);' : ''}">
-          ${tx.points > 0 ? '+' + tx.points : tx.points}
+          ${tx.points > 0 ? '+' + formatNumber(tx.points) : formatNumber(tx.points)}
         </div>
       </div>
     `).join('');
@@ -764,68 +831,52 @@ function switchTab(tabName) {
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Lịch Sử Nhận & Đổi Thưởng</h2>
-            <p class="card-desc">Sổ cái ghi nhận điểm FitPoints minh bạch</p>
+            <h2 class="card-title">${t('sp.history.title')}</h2>
+            <p class="card-desc">${t('sp.history.desc')}</p>
           </div>
         </div>
         <div class="transactions-list">
-          ${rowsHtml || '<p>Chưa có giao dịch nào.</p>'}
+          ${rowsHtml || `<p>${t('sp.history.empty')}</p>`}
         </div>
       </div>
     `;
   } else if (tabName === 'devices') {
-    title = 'Manage Devices';
     const currentEmail = localStorage.getItem('currentEmail') || 'demo@fitreward.vn';
     const rawData = localStorage.getItem(currentEmail);
     let userObj = {};
     try { userObj = rawData ? JSON.parse(rawData) : {}; } catch(e){}
 
+    const devices = [
+      { id: 'apple', title: 'Apple Health', connected: userObj.appleHealth !== false, iconClass: 'apple-bg', icon: '' },
+      { id: 'google', title: 'Google Health Connect', connected: userObj.googleHealthConnect !== false, iconClass: 'google-bg', icon: 'G' },
+      { id: 'garmin', title: 'Garmin Connect', connected: userObj.garminConnect !== false, iconClass: 'garmin-bg', icon: '▲' }
+    ];
+
     html = `
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Quản Lý Kết Nối Thiết Bị</h2>
-            <p class="card-desc">Liên kết các cảm biến bước chân để tự động tính điểm</p>
+            <h2 class="card-title">${t('sp.devices.title')}</h2>
+            <p class="card-desc">${t('sp.devices.desc')}</p>
           </div>
         </div>
         <div class="health-options">
-          <div class="device-item ${userObj.appleHealth !== false ? 'connected' : ''}">
-            <div class="d-icon apple-bg"></div>
-            <div class="d-text">
-              <div class="d-title">Apple Health</div>
-              <div class="d-meta">${userObj.appleHealth !== false ? 'Đã kết nối' : 'Chưa kết nối'}</div>
+          ${devices.map(device => `
+            <div class="device-item ${device.connected ? 'connected' : ''}">
+              <div class="d-icon ${device.iconClass}">${device.icon}</div>
+              <div class="d-text">
+                <div class="d-title">${device.title}</div>
+                <div class="d-meta">${device.connected ? t('device.status.connected') : t('device.status.notConnected')}</div>
+              </div>
+              <button class="btn-d-connect" onclick="handleToggleDevice('${device.id}', '${device.title}')">
+                ${device.connected ? t('device.btn.connected') : t('device.btn.connect')}
+              </button>
             </div>
-            <button class="btn-d-connect" onclick="handleToggleDevice('apple', 'Apple Health')">
-              ${userObj.appleHealth !== false ? 'Connected' : 'Connect'}
-            </button>
-          </div>
-
-          <div class="device-item ${userObj.googleHealthConnect !== false ? 'connected' : ''}">
-            <div class="d-icon google-bg">G</div>
-            <div class="d-text">
-              <div class="d-title">Google Health Connect</div>
-              <div class="d-meta">${userObj.googleHealthConnect !== false ? 'Đã kết nối' : 'Chưa kết nối'}</div>
-            </div>
-            <button class="btn-d-connect" onclick="handleToggleDevice('google', 'Google Health Connect')">
-              ${userObj.googleHealthConnect !== false ? 'Connected' : 'Connect'}
-            </button>
-          </div>
-
-          <div class="device-item ${userObj.garminConnect !== false ? 'connected' : ''}">
-            <div class="d-icon garmin-bg">▲</div>
-            <div class="d-text">
-              <div class="d-title">Garmin Connect</div>
-              <div class="d-meta">${userObj.garminConnect !== false ? 'Đã kết nối' : 'Chưa kết nối'}</div>
-            </div>
-            <button class="btn-d-connect" onclick="handleToggleDevice('garmin', 'Garmin Connect')">
-              ${userObj.garminConnect !== false ? 'Connected' : 'Connect'}
-            </button>
-          </div>
+          `).join('')}
         </div>
       </div>
     `;
   } else if (tabName === 'profile') {
-    title = 'User Profile';
     const currentEmail = localStorage.getItem('currentEmail') || 'tim.cook@apple.com';
     let userObj = { username: 'Tim Cook' };
     try { userObj = JSON.parse(localStorage.getItem(currentEmail)) || userObj; } catch(e){}
@@ -834,27 +885,26 @@ function switchTab(tabName) {
       <div class="subpage-card">
         <div class="subpage-header">
           <div>
-            <h2 class="card-title">Hồ Sơ Người Dùng</h2>
-            <p class="card-desc">Thông tin tài khoản FitReward cá nhân</p>
+            <h2 class="card-title">${t('sp.profile.title')}</h2>
+            <p class="card-desc">${t('sp.profile.desc')}</p>
           </div>
-          <button class="btn btn-outline btn-sm" onclick="handleLogout()">Đăng Xuất</button>
+          <button class="btn btn-outline btn-sm" onclick="handleLogout()">${t('sp.profile.logout')}</button>
         </div>
         <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
           <div class="user-avatar" style="width: 64px; height: 64px; font-size: 24px;">TC</div>
           <div>
             <h3 style="font-size: 18px; font-weight: 800;">${userObj.username || 'Tim Cook'}</h3>
             <p style="color: var(--color-text-muted); font-size: 13px;">${currentEmail}</p>
-            <span class="card-badge-pill green" style="margin-top: 6px; display: inline-block;">FitReward Plus Member</span>
+            <span class="card-badge-pill green" style="margin-top: 6px; display: inline-block;">${t('sp.profile.member')}</span>
           </div>
         </div>
       </div>
     `;
   } else {
-    title = tabName.charAt(0).toUpperCase() + tabName.slice(1);
     html = `
       <div class="subpage-card">
         <h2 class="card-title">${title}</h2>
-        <p class="card-desc">Nội dung đang được cập nhật trong phiên bản tiếp theo.</p>
+        <p class="card-desc">${t('sp.placeholder')}</p>
       </div>
     `;
   }
@@ -864,11 +914,35 @@ function switchTab(tabName) {
 }
 
 // =========================================================================
-// 8. LIFECYCLE & DOMContentLoaded INITIALIZATION
+// 8. LANGUAGE SWITCHING
+// =========================================================================
+
+/**
+ * Switches the UI language, persists the choice and re-renders dynamic content.
+ */
+function setLanguage(lang) {
+  if (!SUPPORTED_LANGS.includes(lang)) return;
+
+  currentLang = lang;
+  localStorage.setItem(LANG_STORAGE_KEY, lang);
+  applyTranslations();
+
+  updateFooterState(currentScreen);
+  clearFormErrors();
+  renderUserDeviceStates();
+
+  if (currentView === 'dashboard') {
+    switchTab(currentTab);
+  }
+}
+
+// =========================================================================
+// 9. LIFECYCLE & DOMContentLoaded INITIALIZATION
 // =========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
   initFitRewardStorage();
+  applyTranslations();
 
   // Check if a user is currently logged in via currentEmail
   const activeEmail = localStorage.getItem('currentEmail');
@@ -876,13 +950,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (activeEmail) {
     // If user is logged in, immediately open the authenticated fintech dashboard
     setAppView('dashboard');
+    switchTab('dashboard');
   } else {
-    // If not logged in, show the clean split-screen welcome page
-    setAppView('auth');
-    navigateTo('welcome');
+    // If not logged in, show the public landing page
+    setAppView('landing');
   }
 
-  // Interactive Carousel Slider Dots for Auth Left Panel
+  // Interactive Carousel Slider Dots for Auth Right Panel
   const dots = document.querySelectorAll('.dot-dash');
   dots.forEach((dot) => {
     dot.addEventListener('click', () => {
